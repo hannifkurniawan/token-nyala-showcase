@@ -844,6 +844,305 @@
   });
 
   /* ---------------------------------------------------------
+     Live chat Nala — scripted, local only (no AI, no server)
+     --------------------------------------------------------- */
+  const CHAT_T = {
+    id: {
+      status: 'Asisten otomatis', inputLabel: 'Pesan', placeholder: 'Tulis pertanyaanmu…', placeholderContact: 'Email atau nomor HP',
+      greeting: 'Hai, aku Nala! Mau dibantu pilih paket, atau ada pertanyaan lain?',
+      chips: { pick: 'Bantu pilih paket', howto: 'Cara pakai saldo di tool', models: 'Model apa saja?', pay: 'Metode pembayaran', team: 'Bicara dengan tim',
+        learn: 'Belajar', prototype: 'Prototype', work: 'Kerja', once: 'Sesekali', weekly: 'Tiap minggu', daily: 'Tiap hari', restart: 'Ulangi' },
+      pickQ1: 'Kamu mau pakai AI untuk apa?', pickQ2: 'Seberapa sering kamu akan memakainya?',
+      pickResult: (p) => `Paket ${p.name} (${p.price}) paling pas buatmu, ${p.estimate}.`, pickChoose: 'Pilih paket ini',
+      howto: 'Setelah top up, salin API key, lalu tempel bersama Base URL di pengaturan tool-mu. Mau lihat panduannya?', howtoBtn: 'Lihat panduan',
+      models: 'Satu saldo bisa dipakai di semua model. Model hemat bikin saldo awet, model premium untuk tugas rumit.', modelsBtn: 'Buka katalog model',
+      pay: 'Kamu bisa bayar pakai QRIS, e-wallet, atau virtual account. Di prototype ini semuanya simulasi.',
+      fallback: 'Maaf, aku belum paham. Coba pilih salah satu topik ini, atau bicara dengan tim.',
+      connecting: 'Menghubungkan ke tim…', agentName: 'Sari', agentBadge: 'Tim', agentStatus: 'Sari · Tim TokenNyala',
+      agentGreeting: 'Halo, aku Sari dari tim TokenNyala. Ada yang bisa kubantu soal top up?',
+      agentReply: 'Pesanmu sudah kami terima. Di produk nyata, tim akan membalas di sini dalam beberapa menit.',
+      modeLabel: 'Simulasi, tidak ada agen nyata', hours: 'Tim online Senin–Jumat, 09.00–18.00 WIB',
+      offline: 'Tim sedang offline. Tinggalkan email atau nomor HP, kami balas di jam kerja.',
+      offlineThanks: (c) => `Terima kasih! Kami balas ke ${c} di jam kerja.`,
+      typingNala: 'Nala sedang mengetik…', typingSari: 'Sari sedang mengetik…',
+    },
+    en: {
+      status: 'Automated assistant', inputLabel: 'Message', placeholder: 'Type your question…', placeholderContact: 'Email or phone number',
+      greeting: "Hi, I'm Nala! Want help choosing a package, or got another question?",
+      chips: { pick: 'Help me pick a package', howto: 'Using credit in my tool', models: 'Which models?', pay: 'Payment methods', team: 'Talk to the team',
+        learn: 'Learn', prototype: 'Prototype', work: 'Work', once: 'Occasionally', weekly: 'Every week', daily: 'Every day', restart: 'Start over' },
+      pickQ1: 'What will you use AI for?', pickQ2: 'How often will you use it?',
+      pickResult: (p) => `The ${p.name} package (${p.price}) fits you best, ${p.estimate}.`, pickChoose: 'Choose this package',
+      howto: 'After topping up, copy your API key and paste it with the Base URL into your tool settings. Want to see the guide?', howtoBtn: 'See the guide',
+      models: 'One balance works across every model. Budget models make credit last, premium ones handle hard tasks.', modelsBtn: 'Open model catalog',
+      pay: 'You can pay with QRIS, e-wallets, or virtual accounts. In this prototype everything is simulated.',
+      fallback: "Sorry, I didn't get that. Try one of these topics, or talk to the team.",
+      connecting: 'Connecting you to the team…', agentName: 'Sari', agentBadge: 'Team', agentStatus: 'Sari · TokenNyala team',
+      agentGreeting: "Hi, I'm Sari from the TokenNyala team. How can I help with your top up?",
+      agentReply: 'We got your message. In the real product, the team replies here within a few minutes.',
+      modeLabel: 'Simulation, no real agent', hours: 'Team online Mon–Fri, 09:00–18:00 WIB',
+      offline: "The team is offline. Leave your email or phone number and we'll reply during working hours.",
+      offlineThanks: (c) => `Thanks! We'll reply to ${c} during working hours.`,
+      typingNala: 'Nala is typing…', typingSari: 'Sari is typing…',
+    },
+  };
+  const chatDlg = $('#chat');
+  const chatLauncher = $('#chatLauncher');
+  const chatLog = $('#chatLog');
+  const chatInput = $('#chatInput');
+  const chatDesktop = window.matchMedia('(min-width: 768px)');
+  const CHAT_TYPING_MS = 500;
+  const ct = () => CHAT_T[state.lang];
+  // Messages store keys (not text) so the whole log re-translates on language change.
+  const chat = { messages: [], chips: 'main', mode: 'bot', flow: null, typing: null };
+  const PICK_MATRIX = {
+    learn: { once: 'learn', weekly: 'learn', daily: 'prototype' },
+    prototype: { once: 'learn', weekly: 'prototype', daily: 'work' },
+    work: { once: 'prototype', weekly: 'work', daily: 'work' },
+  };
+  const CHIP_SETS = {
+    main: ['pick', 'howto', 'models', 'pay', 'team'],
+    goal: ['learn', 'prototype', 'work'],
+    freq: ['once', 'weekly', 'daily'],
+    result: ['restart', 'team'],
+    none: [],
+  };
+  const KEYWORDS = [ // free text → intent (ID + EN)
+    ['team', /\b(tim|team|manusia|human|agen|agent|cs|admin|orang)\b/i],
+    ['pick', /\b(paket|package|pilih|choose|berapa|how much|rekomendasi|recommend)\b/i],
+    ['howto', /\b(api|key|tool|pasang|setup|cursor|cline|continue|cara pakai)\b/i],
+    ['models', /\b(model|claude|gpt|gemini|deepseek|qwen)\b/i],
+    ['pay', /\b(bayar|pay|payment|qris|e-?wallet|virtual account|va|dana|gopay|ovo)\b/i],
+  ];
+
+  function teamOnline() {
+    const forced = new URLSearchParams(location.search).get('chat'); // QA override: ?chat=online|offline
+    if (forced === 'online') return true;
+    if (forced === 'offline') return false;
+    const now = new Date();
+    const wib = new Date(now.getTime() + (now.getTimezoneOffset() + 7 * 60) * 60000); // UTC+7
+    const day = wib.getDay();
+    const hour = wib.getHours();
+    return day >= 1 && day <= 5 && hour >= 9 && hour < 18;
+  }
+
+  function messageText(msg) {
+    if (msg.text != null) return msg.text;
+    const v = ct()[msg.key];
+    return typeof v === 'function' ? v(msg.params ? msg.params() : undefined) : v;
+  }
+
+  function chatBubble(msg) {
+    const row = document.createElement('div');
+    if (msg.from === 'system') { row.className = 'chat__system'; row.textContent = messageText(msg); return row; }
+    const mine = msg.from === 'user';
+    row.className = `chat__msg${mine ? ' chat__msg--user' : ''}`;
+    if (!mine) {
+      row.insertAdjacentHTML('beforeend', msg.from === 'sari'
+        ? '<span class="chat__agent" aria-hidden="true">S</span>'
+        : '<img src="assets/tokennyala-mark.svg" alt="" width="28" height="28">');
+    }
+    const box = document.createElement('div');
+    box.className = 'chat__bubble';
+    if (msg.from === 'sari') box.insertAdjacentHTML('beforeend', `<span class="chat__tag">${ct().agentName}<small>${ct().agentBadge}</small></span>`);
+    const p = document.createElement('p');
+    p.textContent = messageText(msg);
+    if (!mine) {
+      const who = document.createElement('span'); // screen readers: say who is speaking
+      who.className = 'sr-only';
+      who.textContent = `${msg.from === 'sari' ? ct().agentName : 'Nala'}: `;
+      p.prepend(who);
+    }
+    box.append(p);
+    (msg.actions || []).forEach((a) => {
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'btn btn--primary';
+      b.textContent = ct()[a.key];
+      b.addEventListener('click', a.run);
+      box.append(b);
+    });
+    row.append(box);
+    return row;
+  }
+
+  function renderChat() {
+    const c = ct();
+    const items = chat.messages.map(chatBubble);
+    if (chat.typing) {
+      const el = document.createElement('div');
+      el.className = 'chat__typing';
+      el.textContent = c[chat.typing];
+      items.push(el);
+    }
+    chatLog.replaceChildren(...items);
+    $('#chatChips').replaceChildren(...CHIP_SETS[chat.chips].map((key) => {
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'chat__chip';
+      b.textContent = c.chips[key];
+      b.addEventListener('click', () => handleChatInput(c.chips[key], key));
+      return b;
+    }));
+    const team = chat.mode === 'team';               // a (simulated) human is in the chat
+    const offline = chat.mode.startsWith('offline'); // team unavailable; Nala collects a contact
+    const collecting = chat.mode === 'offline';
+    $('#chatStatus').textContent = team ? c.agentStatus : c.status;
+    const mode = $('#chatMode');
+    mode.hidden = !(team || offline);
+    mode.textContent = team ? `${c.modeLabel} · ${c.hours}` : c.hours;
+    $('#chatInputLabel').textContent = collecting ? c.placeholderContact : c.inputLabel;
+    chatInput.placeholder = collecting ? c.placeholderContact : c.placeholder;
+    chatInput.setAttribute('inputmode', collecting ? 'email' : 'text');
+    // Scroll last: the chip row changes height, which changes the log's height.
+    requestAnimationFrame(() => { chatLog.scrollTop = chatLog.scrollHeight; });
+  }
+
+  /** Show a typing line, then append the reply. */
+  function chatReply(msgs, { chips = 'main', typing = 'typingNala' } = {}) {
+    chat.chips = 'none';
+    chat.typing = typing;
+    renderChat();
+    setTimeout(() => {
+      chat.typing = null;
+      chat.messages.push(...[].concat(msgs));
+      chat.chips = chips;
+      renderChat();
+    }, CHAT_TYPING_MS);
+  }
+
+  function startPick() { chat.flow = { name: 'pick' }; chatReply({ from: 'nala', key: 'pickQ1' }, { chips: 'goal' }); }
+
+  function goTeam() {
+    chat.flow = null;
+    chat.messages.push({ from: 'system', key: 'connecting' });
+    if (teamOnline()) {
+      chat.mode = 'team';
+      chatReply({ from: 'sari', key: 'agentGreeting' }, { chips: 'none', typing: 'typingSari' });
+    } else {
+      chat.mode = 'offline';
+      chatReply({ from: 'nala', key: 'offline' }, { chips: 'none' });
+    }
+  }
+
+  const leaveChatThen = (fn) => () => { closeChat(false); setTimeout(fn, 0); };
+  function goToGuide() {
+    const target = $('#pakai');
+    if (window.__lenis) window.__lenis.scrollTo(target, { offset: -20, immediate: prefersReducedMotion });
+    else target.scrollIntoView({ behavior: prefersReducedMotion ? 'auto' : 'smooth' });
+    setTimeout(() => $('#toolsTitle').focus({ preventScroll: true }), prefersReducedMotion ? 0 : 900);
+  }
+
+  function handleChatInput(text, chipKey = null) {
+    const value = text.trim();
+    if (!value) return;
+    chat.messages.push({ from: 'user', text: value });
+
+    if (chat.mode === 'offline') { // the input collects a contact
+      const res = validateContact(value);
+      if (!res.ok) { chatReply({ from: 'nala', text: res.msg }, { chips: 'none' }); return; }
+      chat.mode = 'offline-done';
+      chatReply({ from: 'nala', key: 'offlineThanks', params: () => res.display }, { chips: 'main' });
+      return;
+    }
+    if (chat.mode === 'team') { chatReply({ from: 'sari', key: 'agentReply' }, { chips: 'none', typing: 'typingSari' }); return; }
+
+    const has = (re) => re.test(value);
+    if (chat.flow && chat.flow.name === 'pick' && !chat.flow.goal) {
+      const goal = chipKey === 'learn' || has(/belajar|learn/i) ? 'learn'
+        : chipKey === 'prototype' || has(/proto/i) ? 'prototype'
+        : chipKey === 'work' || has(/kerja|work|klien|client/i) ? 'work' : null;
+      if (goal) { chat.flow.goal = goal; chatReply({ from: 'nala', key: 'pickQ2' }, { chips: 'freq' }); return; }
+    } else if (chat.flow && chat.flow.name === 'pick' && chat.flow.goal) {
+      const freq = chipKey === 'once' || has(/sesekali|jarang|occasion|once/i) ? 'once'
+        : chipKey === 'weekly' || has(/minggu|week/i) ? 'weekly'
+        : chipKey === 'daily' || has(/hari|daily|day/i) ? 'daily' : null;
+      if (freq) {
+        const pkg = PACKAGES[PICK_MATRIX[chat.flow.goal][freq]];
+        chat.flow = null;
+        chatReply({
+          from: 'nala', key: 'pickResult',
+          params: () => ({ name: pkg.name, price: rp(pkg.amount), estimate: pkg.estimate[state.lang] }),
+          actions: [{ key: 'pickChoose', run: leaveChatThen(() => openCheckout(pkg.id, chatLauncher)) }],
+        }, { chips: 'result' });
+        return;
+      }
+    }
+
+    const intent = { pick: 'pick', restart: 'pick', howto: 'howto', models: 'models', pay: 'pay', team: 'team' }[chipKey]
+      ?? (KEYWORDS.find(([, re]) => has(re)) || [])[0];
+    chat.flow = null;
+    if (intent === 'pick') return startPick();
+    if (intent === 'team') return goTeam();
+    if (intent === 'howto') return chatReply({ from: 'nala', key: 'howto', actions: [{ key: 'howtoBtn', run: leaveChatThen(goToGuide) }] });
+    if (intent === 'models') return chatReply({ from: 'nala', key: 'models', actions: [{ key: 'modelsBtn', run: leaveChatThen(() => openDialog(catalog, chatLauncher, $('#catSearch'))) }] });
+    if (intent === 'pay') return chatReply({ from: 'nala', key: 'pay' });
+    return chatReply({ from: 'nala', key: 'fallback' });
+  }
+
+  function resetChat() {
+    Object.assign(chat, { messages: [{ from: 'nala', key: 'greeting' }], chips: 'main', mode: 'bot', flow: null, typing: null });
+    renderChat();
+  }
+
+  function openChat() {
+    if (menuBtn.getAttribute('aria-expanded') === 'true') setMenu(false);
+    $$('dialog[open]').forEach((d) => { if (d !== chatDlg) d.close(); });
+    if (!chat.messages.length) resetChat();
+    if (chatDesktop.matches) chatDlg.show(); // non-modal panel: the page stays usable
+    else {
+      chatDlg.showModal();
+      if (window.__lenis) window.__lenis.stop();
+      document.body.style.overflow = 'hidden';
+    }
+    chatLauncher.setAttribute('aria-expanded', 'true');
+    renderChat();
+    chatInput.focus({ preventScroll: true });
+  }
+  function closeChat(returnFocus = true) {
+    if (!chatDlg.open) return;
+    chat.skipFocus = !returnFocus;
+    chatDlg.close();
+  }
+  chatDlg.addEventListener('close', () => {
+    chatLauncher.setAttribute('aria-expanded', 'false');
+    if (!chat.skipFocus && !document.querySelector('dialog[open]')) chatLauncher.focus({ preventScroll: true });
+    chat.skipFocus = false;
+  });
+  // Escape: native for the modal (phones); handled here for the non-modal panel.
+  document.addEventListener('keydown', (e) => {
+    if (e.key !== 'Escape' || !chatDlg.open || chatDlg.matches(':modal') || document.querySelector('dialog:modal')) return;
+    e.preventDefault();
+    closeChat();
+  });
+  $('#chatClose').addEventListener('click', () => closeChat());
+  $('#chatRestart').addEventListener('click', () => { resetChat(); chatInput.focus(); });
+  $('#chatForm').addEventListener('submit', (e) => {
+    e.preventDefault();
+    const v = chatInput.value;
+    chatInput.value = '';
+    handleChatInput(v);
+  });
+  // Crossing the phone/desktop breakpoint while open: reopen in the right mode.
+  chatDesktop.addEventListener('change', () => { if (chatDlg.open) { chat.skipFocus = true; chatDlg.close(); openChat(); } });
+  $$('[data-open-chat]').forEach((b) => b.addEventListener('click', openChat));
+  document.addEventListener('tn:lang', () => { if (chat.messages.length) renderChat(); });
+
+  // Phones: the launcher would cover the hero board, so it appears once the hero scrolls away.
+  const heroEl = $('#top') || $('.hero');
+  if (heroEl && 'IntersectionObserver' in window) {
+    const phone = window.matchMedia('(max-width: 639px)');
+    let heroVisible = true;
+    const syncLauncher = () => {
+      const hide = phone.matches && heroVisible;
+      chatLauncher.classList.toggle('is-away', hide);
+      chatLauncher.inert = hide;
+    };
+    new IntersectionObserver(([entry]) => { heroVisible = entry.intersectionRatio > 0.35; syncLauncher(); }, { threshold: [0, 0.35, 1] }).observe(heroEl);
+    phone.addEventListener('change', syncLauncher);
+  }
+
+  /* ---------------------------------------------------------
      Render everything (also on language change)
      --------------------------------------------------------- */
   function renderAll() {
