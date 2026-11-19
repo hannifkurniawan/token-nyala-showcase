@@ -1,0 +1,854 @@
+<!doctype html>
+<html lang="id" class="no-js">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>TokenNyala — Saldo AI untuk vibecoder</title>
+  <meta name="description" content="Isi saldo AI dengan mudah, pilih nominal sesuai proyek, dan lanjutkan membangun. Konsep interaktif TokenNyala.">
+  <meta name="theme-color" content="#002DBB">
+  <meta property="og:title" content="TokenNyala — Mulai vibecoding. Jangan berhenti di tengah jalan.">
+  <meta property="og:description" content="Saldo AI yang pas untuk proyek pertamamu. Konsep interaktif — no real payment.">
+  <meta property="og:image" content="assets/og-board.svg">
+  <link rel="icon" href="assets/tokennyala-mark.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Manrope:wght@400;500;600;700;800&display=swap">
+  <link rel="stylesheet" href="styles.css">
+  <script>
+    (function () {
+      var d = document.documentElement;
+      d.classList.remove('no-js'); d.classList.add('js');
+      try { var l = localStorage.getItem('tn-lang'); if (l === 'en' || l === 'id') d.lang = l; } catch (e) {}
+      if (!matchMedia('(prefers-reduced-motion: reduce)').matches) d.classList.add('is-loading');
+    })();
+  </script>
+</head>
+<body>
+  <a class="skip-link" href="#main"><span data-l="id">Langsung ke konten</span><span data-l="en">Skip to content</span></a>
+
+  <!-- ============ PRELOADER: The Switch Turns On ============ -->
+  <div class="loader" id="loader" aria-hidden="true">
+    <div class="loader__inner">
+      <div class="loader__switch"><span class="loader__knob"></span></div>
+      <p class="loader__count"><span id="loaderCount">000</span>%</p>
+      <p class="loader__label"><span data-l="id">Menyalakan momentum</span><span data-l="en">Switching on momentum</span></p>
+    </div>
+  </div>
+
+  <!-- ============ CURSOR ============ -->
+  <div class="cursor" id="cursor" aria-hidden="true"><span class="cursor__label" id="cursorLabel"></span></div>
+
+  <!-- ============ HEADER ============ -->
+  <header class="site-header" id="siteHeader">
+    <a class="brand" href="#top" aria-label="TokenNyala, ke atas">
+      <img src="assets/tokennyala-mark.svg" alt="" width="34" height="34">
+      <span class="brand__word">TokenNyala</span>
+    </a>
+    <nav class="nav-desktop" aria-label="Utama">
+      <a href="#cara-kerja" data-cursor="↓"><span data-l="id">Cara kerja</span><span data-l="en">How it works</span></a>
+      <a href="#paket" data-cursor="↓"><span data-l="id">Paket</span><span data-l="en">Packages</span></a>
+      <a href="#model" data-cursor="↓"><span data-l="id">Model AI</span><span data-l="en">AI models</span></a>
+      <a href="#faq" data-cursor="↓">FAQ</a>
+    </nav>
+    <div class="header-actions">
+      <div class="lang-switch" role="group" aria-label="Bahasa / Language">
+        <button type="button" class="lang-switch__btn" data-lang="id" aria-pressed="true">ID</button>
+        <button type="button" class="lang-switch__btn" data-lang="en" aria-pressed="false">EN</button>
+      </div>
+      <button type="button" class="btn btn--primary btn--sm header-cta" data-open-checkout data-cursor="Nyala">
+        <span data-l="id">Isi saldo</span><span data-l="en">Top up</span>
+      </button>
+      <button type="button" class="menu-btn" id="menuBtn" aria-expanded="false" aria-controls="menuPanel">
+        <span class="sr-only" id="menuBtnLabel">Buka menu</span>
+        <span class="menu-btn__bars" aria-hidden="true"><i></i><i></i></span>
+      </button>
+    </div>
+  </header>
+
+  <!-- Full-screen menu -->
+  <div class="menu-panel" id="menuPanel" hidden>
+    <nav aria-label="Menu">
+      <ol class="menu-panel__list">
+        <li><a href="#cara-kerja"><small>01</small><span data-l="id">Cara kerja</span><span data-l="en">How it works</span></a></li>
+        <li><a href="#paket"><small>02</small><span data-l="id">Paket</span><span data-l="en">Packages</span></a></li>
+        <li><a href="#model"><small>03</small><span data-l="id">Model AI</span><span data-l="en">AI models</span></a></li>
+        <li><a href="#pakai"><small>04</small><span data-l="id">Pakai di tool</span><span data-l="en">Use in tools</span></a></li>
+        <li><a href="#faq"><small>05</small>FAQ</a></li>
+      </ol>
+    </nav>
+    <div class="menu-panel__foot">
+      <button type="button" class="btn btn--yellow" data-open-checkout><span data-l="id">Isi saldo</span><span data-l="en">Top up balance</span></button>
+      <p class="mono"><span data-l="id">Bagian dari ekosistem XL</span><span data-l="en">Part of the XL ecosystem</span></p>
+    </div>
+  </div>
+
+  <main id="main">
+
+    <!-- ============ HERO ============ -->
+    <section class="hero" id="top" aria-labelledby="heroTitle">
+      <p class="eyebrow hero__eyebrow" data-fade>
+        <span class="eyebrow__dot"></span>
+        <span data-l="id">Untuk ide, prototype, dan proyekmu</span><span data-l="en">For ideas, prototypes, and projects</span>
+      </p>
+
+      <h1 class="hero__title" id="heroTitle">
+        <span data-l="id">
+          <span class="ln"><span>Mulai <button type="button" class="inline-switch" data-hero-switch aria-pressed="false" data-cursor="Klik"><span class="sr-only">Nyalakan saklar</span><span class="inline-switch__knob" aria-hidden="true"></span></button> vibecoding.</span></span>
+          <span class="ln"><span class="t-blue">Jangan berhenti</span></span>
+          <span class="ln"><span class="t-blue">di tengah jalan.</span></span>
+        </span>
+        <span data-l="en">
+          <span class="ln"><span>Start <button type="button" class="inline-switch" data-hero-switch aria-pressed="false" data-cursor="Click"><span class="sr-only">Flip the switch</span><span class="inline-switch__knob" aria-hidden="true"></span></button> vibe-coding.</span></span>
+          <span class="ln"><span class="t-blue">Keep building</span></span>
+          <span class="ln"><span class="t-blue">without breaks.</span></span>
+        </span>
+      </h1>
+
+      <div class="hero__grid">
+        <div class="hero__copy" data-fade>
+          <p class="lead">
+            <span data-l="id">Isi saldo AI dengan mudah, pilih nominal sesuai proyek, dan lanjutkan membangun—tanpa harus memahami istilah teknis dulu.</span>
+            <span data-l="en">Top up AI credit in a simple flow, choose an amount that fits your project, and keep moving—without learning technical terms first.</span>
+          </p>
+          <div class="btn-row">
+            <button type="button" class="btn btn--primary btn--lg magnetic" data-open-checkout data-cursor="Nyala">
+              <span data-l="id">Isi saldo</span><span data-l="en">Top up balance</span>
+              <span class="btn__icon" aria-hidden="true">→</span>
+            </button>
+            <a class="btn btn--ghost btn--lg" href="#cara-kerja"><span data-l="id">Lihat cara kerjanya</span><span data-l="en">How it works</span></a>
+          </div>
+          <ul class="trust-row" role="list">
+            <li><span data-l="id">Bayar lokal</span><span data-l="en">Local payment</span></li>
+            <li><span data-l="id">Saldo aktif cepat</span><span data-l="en">Fast activation</span></li>
+            <li><span data-l="id">Lihat bukti transaksi</span><span data-l="en">Receipts you can see</span></li>
+          </ul>
+        </div>
+
+        <!-- Project board illustration -->
+        <div class="hero__visual">
+          <div class="sticker" aria-hidden="true">
+            <svg viewBox="0 0 200 200" class="sticker__ring">
+              <defs><path id="stickerPath" d="M100,100 m-74,0 a74,74 0 1,1 148,0 a74,74 0 1,1 -148,0"/></defs>
+              <text><textPath href="#stickerPath" textLength="458" lengthAdjust="spacing">SALDO AI · NYALA SEKARANG · LANJUT BANGUN · </textPath></text>
+            </svg>
+            <img src="assets/tokennyala-mark.svg" alt="" class="sticker__mark">
+          </div>
+
+          <figure class="board" id="heroBoard" aria-label="Ilustrasi papan proyek: prompt, kode, pratinjau, dan meter saldo">
+            <div class="board__bar">
+              <span class="board__dots" aria-hidden="true"><i></i><i></i><i></i></span>
+              <span class="mono board__project"><span data-l="id">Proyek:</span><span data-l="en">Project:</span> Event Landing Page</span>
+            </div>
+            <div class="board__prompt">
+              <span class="mono board__tag">Prompt</span>
+              <p class="board__prompt-text"><span id="typePrompt">Make the hero warmer and simpler</span><span class="caret" aria-hidden="true"></span></p>
+            </div>
+            <div class="board__cols">
+              <div class="board__code" aria-hidden="true">
+                <span class="mono board__tag board__tag--light"><span data-l="id">Menulis komponen…</span><span data-l="en">Writing component…</span></span>
+                <div class="code-lines">
+                  <i style="--w:62%;--c:var(--sky)"></i>
+                  <i style="--w:40%;--c:var(--yellow);--x:12%"></i>
+                  <i style="--w:72%;--c:#ffffff55;--x:12%"></i>
+                  <i style="--w:30%;--c:var(--teal);--x:24%"></i>
+                  <i style="--w:54%;--c:#ffffff55;--x:24%"></i>
+                  <i style="--w:46%;--c:var(--sky);--x:12%"></i>
+                  <i style="--w:20%;--c:var(--yellow)"></i>
+                </div>
+              </div>
+              <div class="board__preview" aria-hidden="true">
+                <span class="mono board__tag"><span data-l="id">Pratinjau</span><span data-l="en">Preview</span></span>
+                <div class="mini-page">
+                  <div class="mini-page__sun"></div>
+                  <i class="mini-page__h"></i>
+                  <i class="mini-page__p"></i>
+                  <i class="mini-page__p mini-page__p--s"></i>
+                  <i class="mini-page__btn"></i>
+                </div>
+                <p class="mono board__ready"><span data-l="id">Event page siap</span><span data-l="en">Event page ready</span></p>
+              </div>
+            </div>
+            <div class="board__meter">
+              <div class="board__meter-row">
+                <span class="mono"><span data-l="id">Saldo aktif</span><span data-l="en">Active balance</span></span>
+                <strong class="mono" data-board-balance>Rp0</strong>
+              </div>
+              <div class="meter" role="img" aria-label="Meter saldo ilustratif"><span class="meter__fill" data-board-meter></span></div>
+              <div class="board__meter-row">
+                <span class="mono board__estimate" data-board-estimate>—</span>
+                <span class="status" data-board-status><i></i><span data-board-status-text>Standby</span></span>
+              </div>
+            </div>
+          </figure>
+        </div>
+      </div>
+      <p class="hero__scroll mono" aria-hidden="true"><span data-l="id">Gulir</span><span data-l="en">Scroll</span> ↓</p>
+    </section>
+
+    <!-- ============ STALL STORY (scroll-scrubbed) ============ -->
+    <section class="stall" id="stall" data-phase="on" aria-labelledby="stallTitle">
+      <h2 class="sr-only" id="stallTitle">
+        <span data-l="id">Tanpa saldo, proyek bisa berhenti di 80%. Dengan saldo yang pas, proyek nyala lagi sampai jadi.</span>
+        <span data-l="en">Without credit, a project can stall at 80%. With the right balance, it switches back on and ships.</span>
+      </h2>
+      <div class="stall__inner" aria-hidden="true">
+        <div class="stall__top">
+          <p class="mono stall__project"><span data-l="id">Proyek:</span><span data-l="en">Project:</span> Event Landing Page</p>
+          <p class="mono stall__status">
+            <i></i>
+            <span class="ph ph--build"><span data-l="id">Membangun</span><span data-l="en">Building</span></span>
+            <span class="ph ph--stall"><span data-l="id">Saldo Rp0</span><span data-l="en">Balance Rp0</span></span>
+            <span class="ph ph--on"><span data-l="id">Saldo aktif · Nyala</span><span data-l="en">Balance active · Nyala</span></span>
+          </p>
+        </div>
+
+        <div class="stall__row">
+        <p class="stall__pct"><span id="stallPct">100</span><small>%</small></p>
+
+        <div class="stall__bottom">
+          <p class="stall__msg">
+            <span class="ph ph--build"><span data-l="id">Semua lancar. Prompt demi prompt, halamanmu mulai jadi.</span><span data-l="en">All good. Prompt by prompt, your page takes shape.</span></span>
+            <span class="ph ph--stall"><span data-l="id">Saldo habis. Proyek berhenti di 80%.</span><span data-l="en">Out of credit. Stuck at 80%.</span></span>
+            <span class="ph ph--on"><span data-l="id">Nyala lagi. Prototype jadi.</span><span data-l="en">Back on. Prototype shipped.</span></span>
+          </p>
+          <div class="big-switch stall__switch" id="stallSwitch"><span></span></div>
+        </div>
+        </div>
+        <div class="stall__bar">
+          <span class="stall__fill" id="stallFill"></span>
+          <span class="stall__cut" aria-hidden="true"><span data-l="id">macet</span><span data-l="en">stuck</span></span>
+        </div>
+        <ol class="stall__tasks mono" id="stallTasks">
+          <li data-at=".2"><span data-l="id">Layout awal</span><span data-l="en">First layout</span></li>
+          <li data-at=".45"><span data-l="id">Tampilan mobile</span><span data-l="en">Mobile view</span></li>
+          <li data-at=".7"><span data-l="id">Form pendaftaran</span><span data-l="en">Sign-up form</span></li>
+          <li data-at="1"><span data-l="id">Copy &amp; warna</span><span data-l="en">Copy &amp; colours</span></li>
+        </ol>
+
+      </div>
+    </section>
+
+    <!-- ============ CARA KERJA ============ -->
+    <section class="steps" id="cara-kerja" aria-labelledby="stepsTitle">
+      <div class="section-head">
+        <p class="kicker"><span class="kicker__num">(01)</span> <span data-l="id">Cara kerja</span><span data-l="en">How it works</span></p>
+        <h2 class="display" id="stepsTitle" data-split>
+          <span data-l="id">Dari ide ke proyek, tanpa langkah yang membingungkan.</span>
+          <span data-l="en">From idea to project, with no confusing steps.</span>
+        </h2>
+      </div>
+
+      <div class="steps__pin" id="stepsPin">
+        <div class="steps__controls">
+          <p class="mono steps__hint" aria-hidden="true"><span data-l="id">Geser atau drag kartu →</span><span data-l="en">Swipe or drag the cards →</span></p>
+          <div class="steps__btns">
+            <button type="button" class="steps__btn" id="stepsPrev" data-aria-id="Langkah sebelumnya" data-aria-en="Previous step" aria-label="Langkah sebelumnya">←</button>
+            <button type="button" class="steps__btn" id="stepsNext" data-aria-id="Langkah berikutnya" data-aria-en="Next step" aria-label="Langkah berikutnya">→</button>
+          </div>
+        </div>
+        <div class="steps__rail" aria-hidden="true">
+          <span class="steps__rail-fill" id="stepsRail"></span>
+          <span class="steps__rail-dot" style="--p:0">Ide</span>
+          <span class="steps__rail-dot" style="--p:.5">Prompt</span>
+          <span class="steps__rail-dot" style="--p:1">Nyala</span>
+        </div>
+        <ol class="steps__track" id="stepsTrack" tabindex="0" aria-label="Tiga langkah cara kerja" data-cursor="Drag">
+          <li class="step step--sky">
+            <span class="step__num" aria-hidden="true">01</span>
+            <div class="step__body">
+              <h3><span data-l="id">Pilih tujuanmu</span><span data-l="en">Choose your goal</span></h3>
+              <p><span data-l="id">Belajar, bikin prototype, atau kerjakan proyek.</span><span data-l="en">Learn, build a prototype, or work on a project.</span></p>
+            </div>
+            <div class="step__art" aria-hidden="true">
+              <span class="chip-art"><span data-l="id">Belajar</span><span data-l="en">Learn</span></span>
+              <span class="chip-art chip-art--on">Prototype</span>
+              <span class="chip-art"><span data-l="id">Kerja</span><span data-l="en">Work</span></span>
+            </div>
+          </li>
+          <li class="step step--yellow">
+            <span class="step__num" aria-hidden="true">02</span>
+            <div class="step__body">
+              <h3><span data-l="id">Bayar dengan mudah</span><span data-l="en">Pay with ease</span></h3>
+              <p><span data-l="id">Gunakan QRIS, e-wallet, atau virtual account. Rincian biaya terlihat sebelum bayar.</span><span data-l="en">Use QRIS, e-wallets, or virtual accounts. See every cost before you pay.</span></p>
+            </div>
+            <div class="step__art step__art--receipt" aria-hidden="true">
+              <div class="receipt-art">
+                <p><span>Paket Bangun</span><b>Rp100.000</b></p>
+                <p><span>Bonus</span><b>+Rp15.000</b></p>
+                <p><span data-l="id">Biaya tambahan</span><span data-l="en">Extra fees</span><b>Rp0</b></p>
+                <p class="receipt-art__total"><span>Total</span><b>Rp100.000</b></p>
+              </div>
+            </div>
+          </li>
+          <li class="step step--teal">
+            <span class="step__num" aria-hidden="true">03</span>
+            <div class="step__body">
+              <h3><span data-l="id">Lanjutkan membangun</span><span data-l="en">Keep building</span></h3>
+              <p><span data-l="id">Saldo siap dipakai dan momentum proyek tidak terputus.</span><span data-l="en">Your balance is ready and your project keeps its momentum.</span></p>
+            </div>
+            <div class="step__art" aria-hidden="true">
+              <div class="big-switch big-switch--on"><span></span></div>
+              <p class="mono step__ready">STATUS: NYALA</p>
+            </div>
+          </li>
+        </ol>
+      </div>
+    </section>
+
+    <!-- ============ PAKET ============ -->
+    <section class="packages sheet sheet--blue" id="paket" aria-labelledby="pkgTitle">
+      <div class="section-head section-head--split">
+        <div>
+          <p class="kicker kicker--light"><span class="kicker__num">(02)</span> <span data-l="id">Paket</span><span data-l="en">Packages</span></p>
+          <h2 class="display" id="pkgTitle" data-split>
+            <span data-l="id">Berapa yang harus dibeli? Mulai dari tujuanmu.</span>
+            <span data-l="en">How much should you buy? Start from your goal.</span>
+          </h2>
+        </div>
+        <p class="section-head__aside">
+          <span data-l="id">Pilih tujuan, kami tunjukkan nominal yang paling pas—lengkap dengan perkiraan pemakaian dalam bahasa sehari-hari.</span>
+          <span data-l="en">Pick a goal and we'll show the amount that fits best—with usage estimates in plain language.</span>
+        </p>
+      </div>
+
+      <div class="intent" role="tablist" aria-label="Tujuan" id="intentTabs">
+        <span class="intent__marker" id="intentMarker" aria-hidden="true"></span>
+        <button type="button" class="intent__tab" role="tab" id="tab-learn" data-intent="learn" aria-selected="false" aria-controls="pkgPanel" tabindex="-1">
+          <span class="intent__label"><span data-l="id">Belajar</span><span data-l="en">Learn</span></span>
+          <span class="intent__hint mono">Rp50rb</span>
+        </button>
+        <button type="button" class="intent__tab" role="tab" id="tab-prototype" data-intent="prototype" aria-selected="true" aria-controls="pkgPanel">
+          <span class="intent__label">Prototype</span>
+          <span class="intent__hint mono">Rp100rb</span>
+        </button>
+        <button type="button" class="intent__tab" role="tab" id="tab-work" data-intent="work" aria-selected="false" aria-controls="pkgPanel" tabindex="-1">
+          <span class="intent__label"><span data-l="id">Kerja</span><span data-l="en">Work</span></span>
+          <span class="intent__hint mono">Rp250rb</span>
+        </button>
+      </div>
+
+      <div class="pkg-panel" id="pkgPanel" role="tabpanel" aria-labelledby="tab-prototype">
+        <div class="pkg-sheet" id="pkgSheet">
+          <div class="pkg-sheet__main">
+            <p class="pkg-sheet__kicker mono"><span data-l="id">Paket paling pas</span><span data-l="en">Best fit</span> <span class="pkg-sheet__arrow" aria-hidden="true">→</span> <span id="pkgFit"></span></p>
+            <h3 class="pkg-sheet__name"><span data-l="id">Paket</span><span data-l="en">Package</span> <span id="pkgName"></span></h3>
+            <p class="pkg-sheet__price" aria-live="polite"><small>Rp</small><span id="pkgPrice"></span></p>
+            <p class="pkg-sheet__line" id="recoLine"></p>
+            <div class="pkg-sheet__meter">
+              <div class="meter meter--xl" role="img" id="recoMeterLabel" aria-label=""><span class="meter__fill" id="recoMeter"></span><span class="meter__spark" id="recoSpark" aria-hidden="true"></span></div>
+              <p class="mono reco__credits" id="recoCredits"></p>
+            </div>
+          </div>
+          <div class="pkg-sheet__side">
+            <dl class="pkg-specs">
+              <div><dt><span data-l="id">Cocok untuk</span><span data-l="en">Best for</span></dt><dd id="pkgFor"></dd></div>
+              <div><dt><span data-l="id">Perkiraan pemakaian</span><span data-l="en">Estimated use</span></dt><dd id="pkgEst"></dd></div>
+              <div><dt><span data-l="id">Bonus kredit</span><span data-l="en">Bonus credit</span></dt><dd id="pkgBonus" class="mono"></dd></div>
+              <div><dt><span data-l="id">Saldo masuk</span><span data-l="en">Balance added</span></dt><dd id="pkgCredits" class="mono"></dd></div>
+              <div><dt><span data-l="id">Biaya tambahan</span><span data-l="en">Extra fees</span></dt><dd class="mono">Rp0</dd></div>
+            </dl>
+            <button type="button" class="btn btn--yellow btn--lg btn--block magnetic" id="pkgContinue" data-cursor="Nyala"></button>
+            <ul class="pay-cues mono" role="list"><li>QRIS</li><li>E-Wallet</li><li>Virtual Account</li></ul>
+          </div>
+        </div>
+
+        <div class="pkg-foot">
+          <ul class="rules-list mono" role="list">
+            <li><span data-l="id">1 kredit = Rp1</span><span data-l="en">1 credit = Rp1</span></li>
+            <li><span data-l="id">Sudah termasuk PPN</span><span data-l="en">Tax included</span></li>
+            <li><span data-l="id">Tidak kedaluwarsa</span><span data-l="en">Never expires</span></li>
+          </ul>
+          <p class="disclaimer"><span data-l="id">Estimasi bergantung pada model, panjang prompt, tipe tugas, dan format output.</span><span data-l="en">Estimates depend on the model, prompt length, task type, and output format.</span></p>
+          <a href="#model" class="link-arrow"><span data-l="id">Lihat model yang bisa dipakai</span><span data-l="en">See available models</span> →</a>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ MODEL AI ============ -->
+    <section class="models sheet sheet--paper" id="model" aria-labelledby="modelTitle">
+      <div class="section-head section-head--split">
+        <div>
+          <p class="kicker"><span class="kicker__num">(03)</span> <span data-l="id">Model AI</span><span data-l="en">AI models</span></p>
+          <h2 class="display" id="modelTitle" data-split>
+            <span data-l="id">Satu saldo untuk <mark>semua</mark> model.</span>
+            <span data-l="en">One balance for <mark>every</mark> model.</span>
+          </h2>
+        </div>
+        <p class="section-head__aside">
+          <span data-l="id">Paket apa pun, pilihan modelnya sama. Pilih model hemat untuk tugas ringan, model premium untuk pekerjaan rumit.</span>
+          <span data-l="en">Every package unlocks the same models. Pick a budget model for light tasks and a premium one for hard problems.</span>
+        </p>
+      </div>
+
+      <div class="model-index" role="list" id="modelList"><!-- rendered by script.js --></div>
+
+      <div class="models__foot">
+        <button type="button" class="btn btn--dark btn--lg" id="openCatalog" data-cursor="Buka">
+          <span data-l="id">Lihat semua model &amp; tarif</span><span data-l="en">See all models &amp; rates</span>
+        </button>
+        <p class="note">
+          <span data-l="id">1 sesi kecil ≈ satu permintaan perbaikan komponen di tool coding (±40 rb token masuk, ±4 rb token keluar). Contoh — daftar dan tarif dapat berubah.</span>
+          <span data-l="en">1 small session ≈ one component fix request in a coding tool (~40K tokens in, ~4K out). Example only — models and rates may change.</span>
+        </p>
+      </div>
+    </section>
+
+    <!-- ============ PAKAI DI TOOL ============ -->
+    <section class="tools sheet sheet--dark" id="pakai" aria-labelledby="toolsTitle">
+      <div class="tools__grid">
+        <div class="tools__left">
+          <p class="kicker kicker--light"><span class="kicker__num">(04)</span> API key</p>
+          <h2 class="display" id="toolsTitle" tabindex="-1" data-split>
+            <span data-l="id">Pakai di tool favoritmu.</span>
+            <span data-l="en">Use it in your favorite tools.</span>
+          </h2>
+          <p class="lead lead--light">
+            <span data-l="id">API key adalah kunci yang menghubungkan tool-mu ke saldo TokenNyala.</span>
+            <span data-l="en">An API key connects your tools to your TokenNyala balance.</span>
+          </p>
+          <ol class="tool-steps">
+            <li><b>1</b><div><h3><span data-l="id">Salin API key</span><span data-l="en">Copy your API key</span></h3><p><span data-l="id">Ada di halaman saldo setelah top up.</span><span data-l="en">Find it on your balance page after topping up.</span></p></div></li>
+            <li><b>2</b><div><h3><span data-l="id">Tempel di tool</span><span data-l="en">Paste it into your tool</span></h3><p><span data-l="id">Isi Base URL dan API key di pengaturan tool.</span><span data-l="en">Fill in the Base URL and API key in settings.</span></p></div></li>
+            <li><b>3</b><div><h3><span data-l="id">Pilih model &amp; mulai</span><span data-l="en">Pick a model &amp; build</span></h3><p><span data-l="id">Semua model memakai saldo yang sama.</span><span data-l="en">Every model uses the same balance.</span></p></div></li>
+          </ol>
+        </div>
+
+        <div class="tools__right">
+          <svg class="cable" viewBox="0 0 400 220" aria-hidden="true" preserveAspectRatio="none">
+            <path id="cablePath" d="M10 210 C 120 210, 90 40, 210 60 S 330 170, 390 10" fill="none" stroke="#FFC93C" stroke-width="5" stroke-linecap="round"/>
+          </svg>
+          <div class="config-card">
+            <div class="config-card__head">
+              <span class="mono"><span data-l="id">Contoh konfigurasi</span><span data-l="en">Example configuration</span></span>
+              <span class="badge badge--sky"><span data-l="id">Contoh</span><span data-l="en">Example</span></span>
+            </div>
+            <div class="config-row">
+              <span class="config-row__label mono">Base URL</span>
+              <code class="config-row__value">https://<wbr>api.tokennyala<wbr>.example/v1</code>
+              <button type="button" class="btn btn--sm btn--outline" data-copy="https://api.tokennyala.example/v1"><span class="copy-label">Salin</span></button>
+            </div>
+            <div class="config-row">
+              <span class="config-row__label mono">API key</span>
+              <code class="config-row__value">tn-demo-••••••••3f9a</code>
+              <button type="button" class="btn btn--sm btn--outline" data-copy="tn-demo-0000000000003f9a"><span class="copy-label">Salin</span></button>
+            </div>
+            <p class="config-card__compat">
+              <span data-l="id">Bisa dipakai di tool yang mendukung OpenAI API, contoh: Cursor, Cline, Continue.</span>
+              <span data-l="en">Works with tools that support the OpenAI API, e.g. Cursor, Cline, Continue.</span>
+            </p>
+          </div>
+          <button type="button" class="link-arrow link-arrow--light" data-open-checkout>
+            <span data-l="id">Belum punya API key? Isi saldo dulu</span><span data-l="en">No API key yet? Top up first</span> →
+          </button>
+          <p class="sr-only" aria-live="polite" id="copyStatus"></p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ MANFAAT ============ -->
+    <section class="benefits sheet sheet--paper" id="manfaat" aria-labelledby="benefitTitle">
+      <div class="section-head">
+        <p class="kicker"><span class="kicker__num">(05)</span> <span data-l="id">Kenapa TokenNyala</span><span data-l="en">Why TokenNyala</span></p>
+        <h2 class="display display--xl" id="benefitTitle" data-split>
+          <span data-l="id">Jangan hanya beli saldo. Pastikan proyekmu punya waktu untuk jadi.</span>
+          <span data-l="en">Don't just buy credit. Give your project the time it needs to ship.</span>
+        </h2>
+      </div>
+
+      <div class="stack" id="benefitStack">
+        <article class="stack-card stack-card--sky">
+          <span class="stack-card__num mono">01 / 04</span>
+          <h3><span data-l="id">Pilihan yang bisa kamu pahami</span><span data-l="en">Choices you can understand</span></h3>
+          <p><span data-l="id">Nominal dan estimasi dijelaskan dari kebutuhan proyek, bukan dari nama model dan istilah teknis.</span><span data-l="en">Amounts and estimates are explained by what your project needs, not by model names and jargon.</span></p>
+          <div class="stack-card__art" aria-hidden="true">
+            <span class="talk talk--q"><span data-l="id">Berapa yang harus dibeli?</span><span data-l="en">How much should I buy?</span></span>
+            <span class="talk talk--a"><span data-l="id">≈ 40–60 sesi kecil. Cukup untuk 1 prototype.</span><span data-l="en">≈ 40–60 small sessions. Enough for 1 prototype.</span></span>
+          </div>
+        </article>
+        <article class="stack-card stack-card--yellow">
+          <span class="stack-card__num mono">02 / 04</span>
+          <h3><span data-l="id">Satu saldo untuk lanjut</span><span data-l="en">One balance to keep going</span></h3>
+          <p><span data-l="id">Isi sekali, lalu pakai untuk semua model AI yang tersedia.</span><span data-l="en">Top up once, then use it with every available AI model.</span></p>
+          <div class="stack-card__art stack-card__art--orbit" aria-hidden="true">
+            <img src="assets/tokennyala-mark.svg" alt="">
+            <span>Claude</span><span>GPT</span><span>Gemini</span><span>DeepSeek</span><span>Qwen</span>
+          </div>
+        </article>
+        <article class="stack-card stack-card--teal">
+          <span class="stack-card__num mono">03 / 04</span>
+          <h3><span data-l="id">Bayar dengan cara yang familiar</span><span data-l="en">Pay the way you already do</span></h3>
+          <p><span data-l="id">QRIS, e-wallet, dan virtual account — metode yang sehari-hari dipakai di Indonesia.</span><span data-l="en">QRIS, e-wallets, and virtual accounts — the methods people in Indonesia use every day.</span></p>
+          <div class="stack-card__art stack-card__art--pay" aria-hidden="true">
+            <span>QRIS</span><span>E-Wallet</span><span>Virtual Account</span>
+          </div>
+        </article>
+        <article class="stack-card stack-card--white">
+          <span class="stack-card__num mono">04 / 04</span>
+          <div class="stack-card__split">
+            <div>
+              <h3><span data-l="id">Pantau dan kendalikan</span><span data-l="en">Track and stay in control</span></h3>
+              <p><span data-l="id">Lihat sisa saldo, pemakaian harian, dan matikan API key kapan saja.</span><span data-l="en">See your balance, daily usage, and switch off any API key anytime.</span></p>
+            </div>
+            <!-- Mock dashboard -->
+            <div class="dash" aria-label="Contoh tampilan dashboard">
+              <div class="dash__head">
+                <span class="badge badge--yellow"><span data-l="id">Contoh tampilan</span><span data-l="en">Sample view</span></span>
+                <span class="mono dash__pkg">Paket Bangun · 115.000</span>
+              </div>
+              <div class="dash__balance">
+                <span class="mono"><span data-l="id">Saldo tersisa</span><span data-l="en">Balance left</span></span>
+                <strong>Rp82.400</strong>
+                <div class="meter meter--light" role="img" aria-label="72% saldo tersisa"><span class="meter__fill" style="--v:.716"></span></div>
+              </div>
+              <div class="dash__chart">
+                <p class="mono dash__chart-title"><span data-l="id">Pemakaian 7 hari</span><span data-l="en">Last 7 days</span></p>
+                <div class="bars" id="usageBars" role="img" aria-label="Pemakaian 7 hari terakhir, tertinggi hari Jumat"></div>
+                <ul class="sr-only" id="usageList"></ul>
+              </div>
+              <div class="dash__row">
+                <span id="reminderLabel"><span data-l="id">Ingatkan saat saldo &lt; Rp20.000</span><span data-l="en">Remind me when balance &lt; Rp20,000</span></span>
+                <button type="button" class="toggle" role="switch" aria-checked="true" aria-labelledby="reminderLabel" id="reminderSwitch"><span></span></button>
+              </div>
+              <div class="dash__row dash__row--key">
+                <div>
+                  <p><span data-l="id">Laptop kerja</span><span data-l="en">Work laptop</span> <span class="badge badge--teal" id="keyBadge"></span></p>
+                  <code class="mono">tn-demo-••••••••3f9a</code>
+                </div>
+                <button type="button" class="btn btn--sm btn--outline-dark" id="keyToggle"></button>
+              </div>
+              <p class="sr-only" aria-live="polite" id="dashStatus"></p>
+            </div>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <!-- ============ CONTOH ============ -->
+    <section class="example sheet sheet--white" id="contoh" aria-labelledby="exampleTitle">
+      <div class="example__grid">
+        <div class="example__copy">
+          <p class="kicker"><span class="kicker__num">(06)</span> <span data-l="id">Contoh penggunaan</span><span data-l="en">Example</span></p>
+          <h2 class="display" id="exampleTitle" data-split>
+            <span data-l="id">Satu landing page event, kira-kira butuh berapa?</span>
+            <span data-l="en">One event landing page — how much does it take?</span>
+          </h2>
+          <p class="lead">
+            <span data-l="id">Begini perkiraan pemakaian saat kamu membangun satu halaman dengan bantuan AI, memakai model level Seimbang.</span>
+            <span data-l="en">Here's roughly what it takes to build one page with AI help, using a Balanced-level model.</span>
+          </p>
+
+          <div class="beforeafter" id="beforeAfter" data-state="before">
+            <div class="beforeafter__switch">
+              <span class="mono" aria-hidden="true"><span data-l="id">Sebelum</span><span data-l="en">Before</span></span>
+              <button type="button" class="toggle toggle--lg" role="switch" aria-checked="false" id="baSwitch" data-cursor="Nyala"><span></span><span class="sr-only"><span data-l="id">Tampilkan kondisi sesudah</span><span data-l="en">Show the after state</span></span></button>
+              <span class="mono" aria-hidden="true"><span data-l="id">Sesudah</span><span data-l="en">After</span></span>
+            </div>
+            <ul class="beforeafter__list" role="list">
+              <li><span class="ba-b"><span data-l="id">Macet di 80%</span><span data-l="en">Stuck at 80%</span></span><span class="ba-a"><span data-l="id">Prototype jadi</span><span data-l="en">Prototype ready</span></span></li>
+              <li><span class="ba-b"><span data-l="id">Saldo tidak jelas</span><span data-l="en">Balance unclear</span></span><span class="ba-a"><span data-l="id">Saldo terlihat</span><span data-l="en">Balance visible</span></span></li>
+              <li><span class="ba-b"><span data-l="id">Tebak-tebak paket</span><span data-l="en">Guessing package</span></span><span class="ba-a"><span data-l="id">Paket pas</span><span data-l="en">Package matched</span></span></li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="receipt" aria-labelledby="receiptTitle">
+          <div class="receipt__paper">
+            <p class="mono receipt__head" id="receiptTitle"><span data-l="id">PERKIRAAN · EVENT LANDING PAGE</span><span data-l="en">ESTIMATE · EVENT LANDING PAGE</span></p>
+            <table class="receipt__table">
+              <caption class="sr-only"><span data-l="id">Perkiraan sesi kecil per tugas</span><span data-l="en">Estimated small sessions per task</span></caption>
+              <thead><tr><th scope="col"><span data-l="id">Tugas</span><span data-l="en">Task</span></th><th scope="col"><span data-l="id">Sesi kecil</span><span data-l="en">Small sessions</span></th></tr></thead>
+              <tbody>
+                <tr><td><span data-l="id">Buat layout awal halaman</span><span data-l="en">Build the first page layout</span></td><td>3–5</td></tr>
+                <tr><td><span data-l="id">Rapikan tampilan mobile</span><span data-l="en">Polish the mobile view</span></td><td>2–4</td></tr>
+                <tr><td><span data-l="id">Tambah form pendaftaran</span><span data-l="en">Add a sign-up form</span></td><td>4–6</td></tr>
+                <tr><td><span data-l="id">Perbaiki copy dan warna</span><span data-l="en">Fix copy and colours</span></td><td>2–3</td></tr>
+              </tbody>
+              <tfoot><tr><th scope="row">Total</th><td>11–18</td></tr></tfoot>
+            </table>
+            <p class="receipt__cost"><span data-l="id">Perkiraan biaya</span><span data-l="en">Estimated cost</span> <strong>Rp21.000–Rp34.000</strong></p>
+            <div class="receipt__meter">
+              <div class="meter" role="img" aria-label="Pemakaian maksimal Rp34.000 dari 55.000 kredit paket Mulai"><span class="meter__fill meter__fill--range" style="--from:.38;--v:.62"></span></div>
+              <p class="mono"><span data-l="id">dari 55.000 kredit Paket Mulai</span><span data-l="en">of 55,000 credits in the Mulai package</span></p>
+            </div>
+            <p class="receipt__verdict"><span data-l="id">Paket Mulai cukup, masih ada sisa untuk iterasi.</span><span data-l="en">The Mulai package is enough, with room left to iterate.</span></p>
+            <button type="button" class="btn btn--primary btn--block" data-open-checkout="learn" data-cursor="Nyala">
+              <span data-l="id">Pilih paket Mulai</span><span data-l="en">Choose the Mulai package</span>
+            </button>
+            <p class="disclaimer"><span data-l="id">Pemakaian nyata bervariasi menurut model, panjang prompt, dan output.</span><span data-l="en">Real usage varies by model, prompt length, and output.</span></p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ TIM & BISNIS ============ -->
+    <section class="teams sheet sheet--yellow" id="tim" aria-labelledby="teamTitle">
+      <p class="kicker"><span class="kicker__num">(07)</span> <span data-l="id">Tim &amp; bisnis</span><span data-l="en">Teams &amp; business</span></p>
+      <h2 class="display display--xl" id="teamTitle" data-split>
+        <span data-l="id">Butuh untuk tim atau perusahaan?</span>
+        <span data-l="en">Buying for a team or company?</span>
+      </h2>
+      <div class="teams__grid">
+        <ul class="teams__list" role="list">
+          <li><span data-l="id">Invoice atas nama perusahaan</span><span data-l="en">Invoices in your company's name</span></li>
+          <li><span data-l="id">Faktur pajak</span><span data-l="en">Tax invoices</span></li>
+          <li><span data-l="id">Bayar lewat transfer bank</span><span data-l="en">Pay by bank transfer</span></li>
+          <li><span data-l="id">Pantau pemakaian tiap anggota</span><span data-l="en">Track each member's usage</span></li>
+        </ul>
+        <div class="teams__cta">
+          <p><span data-l="id">Ceritakan kebutuhan timmu. Kami hubungi dalam 1 hari kerja.</span><span data-l="en">Tell us what your team needs. We'll reply within 1 business day.</span></p>
+          <button type="button" class="btn btn--dark btn--lg magnetic" id="openConsult" data-cursor="Tulis">
+            <span data-l="id">Konsultasi untuk tim</span><span data-l="en">Talk to us about your team</span>
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ FAQ ============ -->
+    <section class="faq sheet sheet--paper" id="faq" aria-labelledby="faqTitle">
+      <div class="faq__grid">
+        <div class="faq__head">
+          <p class="kicker"><span class="kicker__num">(08)</span> FAQ</p>
+          <h2 class="display" id="faqTitle" data-split>
+            <span data-l="id">Yang sering ditanyakan.</span>
+            <span data-l="en">Questions people ask.</span>
+          </h2>
+        </div>
+        <div class="faq__list" id="faqList"><!-- rendered by script.js --></div>
+      </div>
+    </section>
+
+    <!-- ============ FINAL CTA ============ -->
+    <section class="final" id="nyala" aria-labelledby="finalTitle">
+      <div class="final__inner">
+        <button type="button" class="mega-switch" id="megaSwitch" aria-pressed="false" data-cursor="Nyala">
+          <span class="sr-only"><span data-l="id">Nyalakan dan isi saldo</span><span data-l="en">Switch on and top up</span></span>
+          <span class="mega-switch__knob" aria-hidden="true"></span>
+        </button>
+        <h2 class="final__title" id="finalTitle">
+          <span data-l="id"><span class="ln"><span>Nyala</span></span><span class="ln"><span>sekarang.</span></span></span>
+          <span data-l="en"><span class="ln"><span>Switch on</span></span><span class="ln"><span>now.</span></span></span>
+        </h2>
+        <p class="lead lead--light final__body">
+          <span data-l="id">Isi saldo AI dalam hitungan menit, pahami apa yang bisa dikerjakan paketmu, lalu lanjut membangun.</span>
+          <span data-l="en">Top up AI credit in minutes, see what your package can do, and keep building.</span>
+        </p>
+        <div class="btn-row btn-row--center">
+          <button type="button" class="btn btn--yellow btn--lg magnetic" data-open-checkout data-cursor="Nyala"><span data-l="id">Isi saldo</span><span data-l="en">Top up balance</span> <span class="btn__icon" aria-hidden="true">→</span></button>
+          <a class="btn btn--ghost-light btn--lg" href="#paket"><span data-l="id">Lihat paket</span><span data-l="en">See packages</span></a>
+        </div>
+        <p class="mono final__trust"><span data-l="id">Biaya tambahan Rp0 · Bayar lokal · Saldo tidak kedaluwarsa</span><span data-l="en">Rp0 extra fees · Local payment · Balance never expires</span></p>
+      </div>
+      <div class="sparks" id="sparks" aria-hidden="true"></div>
+    </section>
+  </main>
+
+  <!-- ============ FOOTER ============ -->
+  <footer class="footer">
+    <div class="footer__top">
+      <div>
+        <p class="footer__promise"><span data-l="id">Mulai bangun tanpa berhenti karena bingung top up.</span><span data-l="en">Keep building without stopping to figure out top-ups.</span></p>
+        <p class="mono footer__eco"><span data-l="id">Bagian dari ekosistem XL</span><span data-l="en">Part of the XL ecosystem</span></p>
+      </div>
+      <nav class="footer__nav" aria-label="Footer">
+        <div>
+          <p class="mono"><span data-l="id">Jelajahi</span><span data-l="en">Explore</span></p>
+          <a href="#cara-kerja"><span data-l="id">Cara kerja</span><span data-l="en">How it works</span></a>
+          <a href="#paket"><span data-l="id">Paket</span><span data-l="en">Packages</span></a>
+          <a href="#model"><span data-l="id">Model AI</span><span data-l="en">AI models</span></a>
+          <a href="#faq">FAQ</a>
+        </div>
+        <div>
+          <p class="mono"><span data-l="id">Bantuan</span><span data-l="en">Help</span></p>
+          <a href="#pakai"><span data-l="id">Panduan pasang</span><span data-l="en">Setup guide</span></a>
+          <a href="#tim"><span data-l="id">Untuk tim</span><span data-l="en">For teams</span></a>
+          <a href="#" data-mock-link><span data-l="id">Hubungi kami</span><span data-l="en">Contact us</span></a>
+        </div>
+      </nav>
+    </div>
+    <p class="footer__giant" aria-hidden="true"><span>Token</span><span>Nyala</span></p>
+    <div class="footer__bottom">
+      <p class="mono">© 2026 TokenNyala · <span data-l="id">Konsep interaktif — no real payment</span><span data-l="en">Interactive concept — no real payment</span></p>
+      <p class="footer__legal">
+        <a href="#" data-mock-link><span data-l="id">Syarat &amp; Ketentuan</span><span data-l="en">Terms</span></a>
+        <a href="#" data-mock-link><span data-l="id">Kebijakan Privasi</span><span data-l="en">Privacy Policy</span></a>
+        <span class="mono">(mock)</span>
+      </p>
+    </div>
+  </footer>
+
+  <!-- ============ CHECKOUT DIALOG ============ -->
+  <dialog data-lenis-prevent class="sheet-dialog" id="checkout" aria-labelledby="coTitle">
+    <div class="sheet-dialog__handle" aria-hidden="true"></div>
+    <div class="sheet-dialog__head">
+      <h2 id="coTitle" tabindex="-1"><span data-l="id">Ringkas top up</span><span data-l="en">Top-up summary</span></h2>
+      <button type="button" class="icon-btn" data-close aria-label="Tutup" data-aria-id="Tutup" data-aria-en="Close">✕</button>
+    </div>
+
+    <!-- step: form -->
+    <form class="co-step" id="coForm" data-step="form" novalidate>
+      <fieldset class="co-pkgs field">
+        <legend><span data-l="id">Nominal paket</span><span data-l="en">Package amount</span></legend>
+        <div class="co-pkgs__grid" id="coPkgs"></div>
+      </fieldset>
+
+      <div class="field">
+        <label for="coContact"><span data-l="id">Email atau nomor HP</span><span data-l="en">Email or phone number</span></label>
+        <p class="field__help" id="coContactHelp"><span data-l="id">Bukti pembelian dikirim ke sini.</span><span data-l="en">We'll send your receipt here.</span></p>
+        <input id="coContact" name="contact" type="text" inputmode="email" autocomplete="email" required aria-describedby="coContactHelp coContactErr" data-ph-id="nama@email.com atau 0812xxxxxxxx" data-ph-en="name@email.com or 0812xxxxxxxx" placeholder="nama@email.com atau 0812xxxxxxxx">
+        <p class="field__error" id="coContactErr" aria-live="polite"></p>
+      </div>
+
+      <fieldset class="field">
+        <legend><span data-l="id">Pilih metode pembayaran</span><span data-l="en">Choose a payment method</span></legend>
+        <div class="pay-grid" id="payGrid">
+          <label class="pay-opt"><input type="radio" name="pay" value="qris"><span class="pay-opt__box"><b>QRIS</b><small><span data-l="id">Pindai dari aplikasi apa pun</span><span data-l="en">Scan from any app</span></small></span></label>
+          <label class="pay-opt"><input type="radio" name="pay" value="ewallet"><span class="pay-opt__box"><b>E-Wallet</b><small>DANA · GoPay · OVO</small></span></label>
+          <label class="pay-opt"><input type="radio" name="pay" value="va"><span class="pay-opt__box"><b>Virtual Account</b><small><span data-l="id">Transfer dari bank</span><span data-l="en">Bank transfer</span></small></span></label>
+        </div>
+        <p class="field__error" id="coPayErr" aria-live="polite"></p>
+      </fieldset>
+
+      <dl class="breakdown">
+        <div><dt><span data-l="id">Nominal paket</span><span data-l="en">Package price</span></dt><dd class="mono" data-co="amount"></dd></div>
+        <div><dt><span data-l="id">Bonus kredit</span><span data-l="en">Bonus credit</span></dt><dd class="mono t-teal" data-co="bonus"></dd></div>
+        <div><dt><span data-l="id">Biaya tambahan</span><span data-l="en">Extra fees</span></dt><dd class="mono">Rp0</dd></div>
+        <div class="breakdown__total"><dt><span data-l="id">Total bayar</span><span data-l="en">Total</span></dt><dd class="mono" data-co="total"></dd></div>
+      </dl>
+      <p class="rules mono rules--dark"><span data-l="id">1 kredit = Rp1 · Sudah termasuk PPN · Tidak kedaluwarsa</span><span data-l="en">1 credit = Rp1 · Tax included · Never expires</span></p>
+      <p class="notice"><span data-l="id">Ini adalah checkout simulasi. Tidak ada transaksi atau penarikan dana nyata.</span><span data-l="en">This is a simulated checkout. No real transaction or charge happens.</span></p>
+      <div class="sheet-dialog__foot">
+        <button type="submit" class="btn btn--primary btn--block btn--lg" id="coSubmit"></button>
+      </div>
+    </form>
+
+    <!-- step: pay -->
+    <div class="co-step" data-step="pay" hidden>
+      <div class="pay-step" id="payStep" aria-live="polite"></div>
+      <div class="sheet-dialog__foot sheet-dialog__foot--stack">
+        <button type="button" class="btn btn--primary btn--block btn--lg" id="coPaid"><span data-l="id">Saya sudah bayar</span><span data-l="en">I've paid</span></button>
+        <button type="button" class="btn btn--text" id="coFail"><span data-l="id">Simulasikan pembayaran gagal</span><span data-l="en">Simulate a failed payment</span></button>
+        <button type="button" class="btn btn--text" id="coBack">← <span data-l="id">Ubah pesanan</span><span data-l="en">Edit order</span></button>
+      </div>
+    </div>
+
+    <!-- step: checking -->
+    <div class="co-step co-checking" data-step="checking" hidden role="status">
+      <div class="big-switch big-switch--busy"><span></span></div>
+      <p><span data-l="id">Memeriksa pembayaran…</span><span data-l="en">Checking payment…</span></p>
+    </div>
+
+    <!-- step: success -->
+    <div class="co-step co-success" data-step="success" hidden>
+      <div class="co-success__burst" aria-hidden="true"><div class="big-switch big-switch--on"><span></span></div></div>
+      <h3 class="co-success__title" tabindex="-1" id="successTitle"><span data-l="id">Saldo nyala!</span><span data-l="en">Your balance is on!</span></h3>
+      <p id="successBody"></p>
+      <div class="meter meter--xl"><span class="meter__fill" id="successMeter"></span></div>
+      <div class="key-card">
+        <p class="mono key-card__label"><span data-l="id">API key kamu</span><span data-l="en">Your API key</span></p>
+        <code id="apiKeyMasked"></code>
+        <div class="btn-row">
+          <button type="button" class="btn btn--primary" id="copyKey"><span class="copy-label"></span></button>
+          <button type="button" class="btn btn--outline-dark" id="seeGuide"><span data-l="id">Lihat panduan pasang</span><span data-l="en">See setup guide</span></button>
+        </div>
+        <p class="key-card__warn"><span data-l="id">Simpan API key seperti kata sandi. Jangan dibagikan.</span><span data-l="en">Keep your API key like a password. Don't share it.</span></p>
+      </div>
+      <p class="notice"><span data-l="id">Prototype — tidak ada transaksi nyata</span><span data-l="en">Prototype — no real transaction</span></p>
+    </div>
+
+    <!-- step: failed -->
+    <div class="co-step co-failed" data-step="failed" hidden>
+      <div class="big-switch"><span></span></div>
+      <h3 tabindex="-1" id="failedTitle"><span data-l="id">Pembayaran belum berhasil</span><span data-l="en">Payment didn't go through</span></h3>
+      <p><span data-l="id">Tidak ada saldo yang terpotong pada prototipe ini. Pilih metode lain atau coba lagi.</span><span data-l="en">No balance was charged in this prototype. Choose another method or try again.</span></p>
+      <button type="button" class="btn btn--primary btn--lg" id="coRetry"><span data-l="id">Coba lagi</span><span data-l="en">Try again</span></button>
+    </div>
+  </dialog>
+
+  <!-- ============ CATALOG DIALOG ============ -->
+  <dialog data-lenis-prevent class="sheet-dialog sheet-dialog--wide" id="catalog" aria-labelledby="catTitle">
+    <div class="sheet-dialog__head">
+      <div>
+        <h2 id="catTitle"><span data-l="id">Model AI yang tersedia</span><span data-l="en">Available AI models</span></h2>
+        <p class="sheet-dialog__sub"><span data-l="id">Satu saldo untuk semua model. Paket apa pun, pilihan modelnya sama.</span><span data-l="en">One balance for every model, whichever package you choose.</span></p>
+      </div>
+      <button type="button" class="icon-btn" data-close data-aria-id="Tutup katalog model" data-aria-en="Close model catalog" aria-label="Tutup katalog model">✕</button>
+    </div>
+    <div class="cat-tools">
+      <label class="sr-only" for="catSearch"><span data-l="id">Cari model</span><span data-l="en">Search models</span></label>
+      <input type="search" id="catSearch" class="cat-search" data-ph-id="Cari model, misalnya Claude" data-ph-en="Search models, e.g. Claude" placeholder="Cari model, misalnya Claude">
+      <div class="cat-filters" id="catFilters"></div>
+    </div>
+    <p class="mono cat-count" id="catCount" aria-live="polite"></p>
+    <div class="cat-grid" id="catGrid"></div>
+    <div class="cat-empty" id="catEmpty" hidden>
+      <p><span data-l="id">Model tidak ditemukan. Coba kata kunci atau filter lain.</span><span data-l="en">No models found. Try another keyword or filter.</span></p>
+      <button type="button" class="btn btn--outline-dark" id="catClear"><span data-l="id">Hapus filter</span><span data-l="en">Clear filters</span></button>
+    </div>
+    <button type="button" class="btn btn--outline-dark cat-more" id="catMore" hidden><span data-l="id">Tampilkan lebih banyak</span><span data-l="en">Show more</span></button>
+    <p class="note cat-note"><span data-l="id">Contoh — daftar model dan tarif dapat berubah. 1 sesi kecil ≈ ±40 rb token masuk, ±4 rb token keluar.</span><span data-l="en">Example — models and rates may change. 1 small session ≈ ~40K tokens in, ~4K out.</span></p>
+  </dialog>
+
+  <!-- ============ CONSULT DIALOG ============ -->
+  <dialog data-lenis-prevent class="sheet-dialog" id="consult" aria-labelledby="csTitle">
+    <div class="sheet-dialog__handle" aria-hidden="true"></div>
+    <div class="sheet-dialog__head">
+      <div>
+        <h2 id="csTitle" tabindex="-1"><span data-l="id">Konsultasi untuk tim</span><span data-l="en">Team consultation</span></h2>
+        <p class="sheet-dialog__sub"><span data-l="id">Ceritakan kebutuhan timmu. Kami hubungi dalam 1 hari kerja.</span><span data-l="en">Tell us what your team needs. We'll reply within 1 business day.</span></p>
+      </div>
+      <button type="button" class="icon-btn" data-close aria-label="Tutup" data-aria-id="Tutup" data-aria-en="Close">✕</button>
+    </div>
+    <form id="csForm" novalidate class="co-step">
+      <div class="field">
+        <label for="csName"><span data-l="id">Nama</span><span data-l="en">Name</span></label>
+        <input id="csName" type="text" autocomplete="name" required aria-describedby="csNameErr">
+        <p class="field__error" id="csNameErr" aria-live="polite"></p>
+      </div>
+      <div class="field">
+        <label for="csContact"><span data-l="id">Email atau nomor HP</span><span data-l="en">Email or phone number</span></label>
+        <input id="csContact" type="text" inputmode="email" autocomplete="email" required aria-describedby="csContactErr">
+        <p class="field__error" id="csContactErr" aria-live="polite"></p>
+      </div>
+      <div class="field">
+        <label for="csOrg"><span data-l="id">Nama tim atau perusahaan</span><span data-l="en">Team or company name</span></label>
+        <input id="csOrg" type="text" autocomplete="organization" required aria-describedby="csOrgErr">
+        <p class="field__error" id="csOrgErr" aria-live="polite"></p>
+      </div>
+      <fieldset class="field">
+        <legend><span data-l="id">Ukuran tim</span><span data-l="en">Team size</span></legend>
+        <div class="chips">
+          <label class="chip"><input type="radio" name="size" value="1-5"><span>1–5</span></label>
+          <label class="chip"><input type="radio" name="size" value="6-20"><span>6–20</span></label>
+          <label class="chip"><input type="radio" name="size" value="21-50"><span>21–50</span></label>
+          <label class="chip"><input type="radio" name="size" value="50+"><span>50+</span></label>
+        </div>
+        <p class="field__error" id="csSizeErr" aria-live="polite"></p>
+      </fieldset>
+      <div class="field">
+        <label for="csNeeds"><span data-l="id">Ceritakan kebutuhanmu (opsional)</span><span data-l="en">Tell us what you need (optional)</span></label>
+        <textarea id="csNeeds" rows="3" maxlength="500" aria-describedby="csCount"></textarea>
+        <p class="field__help mono" id="csCount">0/500</p>
+      </div>
+      <label class="check"><input type="checkbox" id="csInvoice"> <span><span data-l="id">Butuh invoice perusahaan / faktur pajak</span><span data-l="en">I need a company invoice / tax invoice</span></span></label>
+      <label class="check"><input type="checkbox" id="csAgree" aria-describedby="csAgreeErr"> <span><span data-l="id">Saya setuju dengan Syarat &amp; Ketentuan dan Kebijakan Privasi</span><span data-l="en">I agree to the Terms and Privacy Policy</span></span></label>
+      <p class="field__error" id="csAgreeErr" aria-live="polite"></p>
+      <div class="sheet-dialog__foot">
+        <button type="submit" class="btn btn--primary btn--block btn--lg"><span data-l="id">Kirim</span><span data-l="en">Send</span></button>
+      </div>
+    </form>
+    <div class="co-step co-success" id="csSuccess" hidden>
+      <div class="big-switch big-switch--on"><span></span></div>
+      <h3 tabindex="-1" id="csSuccessTitle"><span data-l="id">Terima kasih!</span><span data-l="en">Thank you!</span></h3>
+      <p id="csSuccessBody"></p>
+      <p class="notice"><span data-l="id">Simulasi — tidak ada data yang dikirim.</span><span data-l="en">Simulation — no data is sent.</span></p>
+    </div>
+  </dialog>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <script src="assets/vendor/gsap.min.js" defer></script>
+  <script src="assets/vendor/ScrollTrigger.min.js" defer></script>
+  <script src="assets/vendor/lenis.min.js" defer></script>
+  <script src="script.js" defer></script>
+</body>
+</html>

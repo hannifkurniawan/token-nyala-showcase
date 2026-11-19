@@ -1,0 +1,1375 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#F7F8FC">
+  <meta name="description" content="Top up saldo AI untuk belajar, membuat prototype, dan membangun proyek vibecoding.">
+  <meta property="og:title" content="TokenNyala — Mulai vibecoding tanpa bingung top up">
+  <meta property="og:description" content="Pilih kebutuhan dan top up saldo AI dengan alur yang sederhana.">
+  <meta property="og:type" content="website">
+  <title>TokenNyala — AI Credit untuk Vibecoding</title>
+  <link rel="icon" href="assets/tokennyala-mark.svg" type="image/svg+xml">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;600&family=Manrope:wght@500;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- Tailwind v4 browser build — prototype only. Version pinned; see docs/technical-spec.md -->
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4.3.3"></script>
+  <style type="text/tailwindcss">
+    @theme {
+      --color-xl-blue: #002DBB;
+      --color-xl-blue-hover: #0025A1;
+      --color-xl-dark: #00166A;
+      --color-xl-yellow: #FFC93C;
+      --color-xl-teal: #00D2A0;
+      --color-xl-sky: #5CD0F9;
+      --color-teal-ink: #007A5E; /* teal for text/icons on light bg (AA) */
+      --color-ink: #17181A;
+      --color-paper: #F7F8FC;
+      --color-muted: #626B82; /* was #69728A — 4.47:1 on the sticky header, below AA */
+      --color-line: #D9DEEA;
+
+      --font-sans: "Manrope", system-ui, sans-serif;
+      --font-mono: "IBM Plex Mono", ui-monospace, monospace;
+
+      --radius-card: 20px;
+      --radius-control: 12px;
+
+      /* Motion — durations from docs/technical-spec.md → Animations */
+      --animate-fade-up: fade-up 450ms cubic-bezier(.2,.7,.2,1) both;
+      --animate-enter-right: enter-right 450ms cubic-bezier(.2,.7,.2,1) 120ms both;
+
+      --animate-sheet-in: sheet-in 220ms cubic-bezier(.2,.7,.2,1) both;
+      --animate-dialog-in: dialog-in 220ms cubic-bezier(.2,.7,.2,1) both;
+      --animate-pop-in: pop-in 350ms cubic-bezier(.3,1.4,.5,1) both;
+
+      @keyframes sheet-in { from { transform: translateY(100%); } to { transform: none; } }
+      @keyframes dialog-in { from { opacity: 0; transform: translateY(8px) scale(.98); } to { opacity: 1; transform: none; } }
+      @keyframes pop-in { from { transform: scale(.4); opacity: 0; } to { transform: none; opacity: 1; } }
+      @keyframes fade-up {
+        from { opacity: 0; transform: translateY(12px); }
+        to { opacity: 1; transform: none; }
+      }
+      @keyframes enter-right {
+        from { opacity: 0; transform: translateX(24px); }
+        to { opacity: 1; transform: none; }
+      }
+    }
+
+    @layer base {
+      html { scroll-padding-top: 5rem; -webkit-text-size-adjust: 100%; }
+      body { @apply bg-paper font-sans text-ink antialiased; }
+      :focus-visible { outline: 3px solid var(--color-xl-sky); outline-offset: 3px; }
+    }
+
+    @layer components {
+      /* Page container: 16px gutter on mobile, 24px from sm, max 1184px */
+      .shell { @apply mx-auto w-full max-w-[1184px] px-4 sm:px-6; }
+
+      .btn {
+        @apply inline-flex min-h-11 items-center justify-center gap-2 rounded-control px-5
+               text-sm font-extrabold transition-[background-color,transform,box-shadow] duration-150
+               active:translate-y-px motion-reduce:transition-none;
+      }
+      .btn-primary { @apply bg-xl-blue text-white shadow-[0_8px_20px_rgba(0,45,187,.18)] hover:bg-xl-blue-hover; }
+      .btn-secondary { @apply border border-line bg-white text-xl-dark hover:border-xl-blue; }
+    }
+  </style>
+  <link rel="stylesheet" href="styles.css">
+  <script>
+    /* Motion gate: hide the hero intro only when motion.js will animate it.
+       Failsafe: if it has not started within 2.5s (slow CDN, script error), show everything. */
+    (function () {
+      var root = document.documentElement;
+      if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+      root.classList.add('motion-ok');
+      setTimeout(function () { if (!root.classList.contains('motion-ready')) root.classList.remove('motion-ok'); }, 2500);
+    })();
+  </script>
+</head>
+<body class="flex min-h-dvh flex-col">
+  <a href="#main-content"
+     class="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[60] focus:rounded-control focus:border-2 focus:border-xl-blue focus:bg-white focus:px-4 focus:py-3 focus:font-bold"
+     data-i18n="skipLink">Lewati ke konten utama</a>
+
+  <!-- ============ HEADER ============ -->
+  <header id="top" data-scrolled="false" class="sticky top-0 z-50 border-b border-line/80 bg-paper/95 backdrop-blur transition-shadow duration-300 supports-[backdrop-filter]:bg-paper/85 data-[scrolled=true]:shadow-[0_8px_24px_rgba(0,22,106,.08)]">
+    <!-- Scroll progress (driven by motion.js) -->
+    <div aria-hidden="true" data-scroll-progress class="pointer-events-none absolute inset-x-0 bottom-[-1px] h-0.5 origin-left scale-x-0 bg-gradient-to-r from-xl-teal via-xl-sky to-xl-blue"></div>
+    <div class="shell flex h-16 items-center gap-3 lg:h-20">
+      <a href="#top" class="flex min-h-11 shrink-0 items-center gap-2 text-lg font-extrabold tracking-tight text-xl-dark lg:text-xl"
+         aria-label="TokenNyala — kembali ke atas" data-i18n-aria="brandAria">
+        <img src="assets/tokennyala-mark.svg" alt="" width="32" height="32" class="size-8 rounded-lg lg:size-10">
+        <span>Token<span class="text-xl-blue">Nyala</span></span>
+      </a>
+
+      <nav aria-label="Navigasi utama" data-i18n-aria="navAria" class="ml-auto hidden lg:block">
+        <ul class="flex items-center gap-6 text-sm font-bold text-muted">
+          <li><a class="inline-flex min-h-11 min-w-11 items-center justify-center hover:text-xl-blue" href="#cara-kerja" data-i18n="navHow">Cara kerja</a></li>
+          <li><a class="inline-flex min-h-11 min-w-11 items-center justify-center hover:text-xl-blue" href="#paket" data-i18n="navPackages">Paket</a></li>
+          <li><a class="inline-flex min-h-11 min-w-11 items-center justify-center hover:text-xl-blue" href="#model" data-i18n="navModels">Model AI</a></li>
+          <li><a class="inline-flex min-h-11 min-w-11 items-center justify-center hover:text-xl-blue" href="#faq" data-i18n="navFaq">FAQ</a></li>
+        </ul>
+      </nav>
+
+      <div class="ml-auto flex items-center gap-2 lg:ml-8">
+        <div role="group" aria-label="Pilih bahasa" data-i18n-aria="langAria"
+             class="hidden items-center overflow-hidden rounded-control border border-line bg-white lg:flex">
+          <button type="button" data-lang="id" aria-pressed="true"
+                  class="min-h-11 min-w-11 px-3 text-xs font-extrabold text-muted aria-pressed:bg-xl-blue aria-pressed:text-white">ID</button>
+          <button type="button" data-lang="en" aria-pressed="false"
+                  class="min-h-11 min-w-11 px-3 text-xs font-extrabold text-muted aria-pressed:bg-xl-blue aria-pressed:text-white">EN</button>
+        </div>
+
+        <button type="button" class="btn btn-primary hidden sm:inline-flex" data-open-checkout data-i18n="navCta">Isi saldo</button>
+
+        <button type="button" id="menu-button"
+                class="inline-flex size-11 items-center justify-center rounded-control border border-line bg-white text-ink lg:hidden"
+                aria-expanded="false" aria-controls="mobile-menu" aria-label="Buka menu">
+          <svg class="size-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" aria-hidden="true">
+            <path class="menu-icon-open" d="M4 7h16M4 12h16M4 17h16"/>
+            <path class="menu-icon-close hidden" d="M6 6l12 12M18 6L6 18"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- Mobile menu: base layout; hidden from lg -->
+    <div id="mobile-menu" hidden class="border-t border-line bg-white lg:hidden">
+      <nav aria-label="Navigasi mobile" data-i18n-aria="navMobileAria" class="shell py-3">
+        <ul class="divide-y divide-line/70 text-base font-bold">
+          <li><a class="flex min-h-12 items-center" href="#cara-kerja" data-i18n="navHow">Cara kerja</a></li>
+          <li><a class="flex min-h-12 items-center" href="#paket" data-i18n="navPackages">Paket</a></li>
+          <li><a class="flex min-h-12 items-center" href="#model" data-i18n="navModels">Model AI</a></li>
+          <li><a class="flex min-h-12 items-center" href="#faq" data-i18n="navFaq">FAQ</a></li>
+        </ul>
+
+        <div class="mt-3 flex flex-wrap items-center justify-between gap-3 border-t border-line pt-4">
+          <span class="text-sm font-bold text-muted" data-i18n="langLabel">Bahasa</span>
+          <div role="group" aria-label="Pilih bahasa" data-i18n-aria="langAria"
+               class="flex items-center overflow-hidden rounded-control border border-line bg-paper">
+            <button type="button" data-lang="id" aria-pressed="true"
+                    class="min-h-11 min-w-11 px-3 text-xs font-extrabold text-muted aria-pressed:bg-xl-blue aria-pressed:text-white">ID</button>
+            <button type="button" data-lang="en" aria-pressed="false"
+                    class="min-h-11 min-w-11 px-3 text-xs font-extrabold text-muted aria-pressed:bg-xl-blue aria-pressed:text-white">EN</button>
+          </div>
+        </div>
+
+        <button type="button" class="btn btn-primary mt-4 w-full sm:hidden" data-open-checkout data-i18n="navCta">Isi saldo</button>
+      </nav>
+    </div>
+  </header>
+
+  <!-- ============ MAIN ============ -->
+  <main id="main-content" tabindex="-1" class="flex-1 outline-none">
+    <!-- Sections are added one at a time following docs/v3-ground-rules.md → Urutan Build v3 -->
+
+    <!-- ============ 2. HERO ============ -->
+    <section aria-labelledby="hero-title" class="relative overflow-x-clip">
+      <div aria-hidden="true" data-hero-blob class="pointer-events-none absolute -right-40 -top-56 size-[28rem] rounded-full bg-xl-sky/10 lg:-right-24 lg:-top-64 lg:size-[36rem]"></div>
+      <div aria-hidden="true" data-hero-blob-2 class="pointer-events-none absolute -left-32 top-[60%] hidden size-72 rounded-full bg-xl-yellow/10 lg:block"></div>
+
+      <div class="shell relative grid grid-cols-1 gap-10 pb-16 pt-8 sm:pt-12 lg:grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)] lg:items-center lg:gap-12 lg:pb-24 lg:pt-16">
+        <!-- Copy -->
+        <div data-intro="copy">
+          <p class="flex items-center gap-2 text-xs font-extrabold uppercase tracking-[0.12em] text-xl-blue">
+            <span aria-hidden="true" class="size-2 shrink-0 rounded-full bg-xl-teal ring-4 ring-xl-teal/15"></span>
+            <span data-i18n="heroEyebrow">Untuk ide, prototype, dan proyekmu</span>
+          </p>
+
+          <h1 id="hero-title" class="mt-4 max-w-[16ch] text-[clamp(2.25rem,10.5vw,4rem)] font-extrabold leading-[1.04] tracking-[-0.04em] text-xl-dark sm:max-w-[14ch] lg:max-w-none lg:text-[clamp(2.75rem,4.2vw,3.75rem)]">
+            <span class="block" data-i18n="heroTitleA">Mulai vibecoding.</span>
+            <span class="block text-xl-blue" data-i18n="heroTitleB">Jangan berhenti di tengah jalan.</span>
+          </h1>
+
+          <p class="mt-5 max-w-[34rem] text-base leading-relaxed text-muted sm:text-lg" data-i18n="heroLead">
+            Isi saldo AI dengan mudah, pilih nominal sesuai proyek, dan lanjutkan membangun—tanpa harus memahami istilah teknis dulu.
+          </p>
+
+          <div class="mt-7 flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-4">
+            <button type="button" class="btn btn-primary min-h-13 w-full px-6 text-base sm:w-auto" data-open-checkout>
+              <span data-i18n="heroCta">Isi saldo</span>
+              <svg aria-hidden="true" class="size-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+            </button>
+            <a href="#cara-kerja" class="inline-flex min-h-11 items-center justify-center gap-1 px-2 text-sm font-extrabold text-xl-blue underline-offset-4 hover:underline sm:justify-start">
+              <span data-i18n="heroSecondary">Lihat cara kerjanya</span>
+              <svg aria-hidden="true" class="size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M6 13l6 6 6-6"/></svg>
+            </a>
+          </div>
+
+          <ul class="mt-7 flex flex-wrap gap-x-5 gap-y-2 text-sm font-bold text-ink" aria-label="Keunggulan" data-i18n-aria="heroTrustAria">
+            <li class="flex items-center gap-2"><span aria-hidden="true" class="grid size-5 place-items-center rounded-full bg-xl-teal/15 text-xs text-teal-ink">✓</span><span data-i18n="trustLocal">Bayar lokal</span></li>
+            <li class="flex items-center gap-2"><span aria-hidden="true" class="grid size-5 place-items-center rounded-full bg-xl-teal/15 text-xs text-teal-ink">✓</span><span data-i18n="trustFast">Saldo aktif cepat</span></li>
+            <li class="flex items-center gap-2"><span aria-hidden="true" class="grid size-5 place-items-center rounded-full bg-xl-teal/15 text-xs text-teal-ink">✓</span><span data-i18n="trustReceipt">Lihat bukti transaksi</span></li>
+          </ul>
+        </div>
+
+        <!-- Project board illustration (mock) -->
+        <figure data-intro="board" class="relative mx-auto w-full max-w-[30rem] [perspective:1200px] lg:mx-0 lg:justify-self-end">
+          <!-- Floating decor: parallax depth layers (motion.js → data-speed) -->
+          <span aria-hidden="true" data-float data-speed="-90" class="pointer-events-none absolute -left-7 top-20 z-10 hidden size-12 rotate-12 place-items-center rounded-2xl bg-xl-yellow text-xl text-xl-dark shadow-[0_12px_28px_rgba(255,201,60,.45)] sm:grid">✦</span>
+          <span aria-hidden="true" data-float data-speed="-150" class="pointer-events-none absolute -right-4 -top-5 z-10 hidden size-9 rounded-full border-[6px] border-xl-sky bg-white sm:block"></span>
+          <span aria-hidden="true" data-float data-speed="-50" class="pointer-events-none absolute -bottom-5 right-14 z-10 hidden size-6 rounded-full bg-xl-teal shadow-[0_0_0_8px_rgba(0,210,160,.15)] sm:block"></span>
+          <figcaption class="sr-only" data-i18n="boardCaption">Ilustrasi: proyek sedang dibangun dengan bantuan AI, saldo menunjukkan status.</figcaption>
+
+          <div data-board class="overflow-hidden rounded-card border border-line bg-white shadow-[0_24px_60px_rgba(0,22,106,.12)] [transform-style:preserve-3d]">
+            <!-- Window bar -->
+            <div class="flex items-center gap-3 border-b border-line px-4 py-3">
+              <span aria-hidden="true" class="flex gap-1.5"><i class="size-2.5 rounded-full bg-line"></i><i class="size-2.5 rounded-full bg-line"></i><i class="size-2.5 rounded-full bg-line"></i></span>
+              <p class="min-w-0 truncate text-sm font-extrabold text-xl-dark" data-i18n="boardProject">Event Landing Page</p>
+              <span class="ml-auto shrink-0 rounded-full bg-paper px-2 py-0.5 font-mono text-[11px] font-semibold text-muted" data-i18n="boardTag">Proyek</span>
+            </div>
+
+            <div class="space-y-3 p-4">
+              <!-- Prompt -->
+              <p class="rounded-control bg-paper px-3 py-2.5 font-mono text-xs leading-relaxed text-ink sm:text-[13px]">
+                <span aria-hidden="true" class="text-xl-blue">›</span>
+                <span data-i18n="boardPrompt">Buat hero lebih hangat dan sederhana</span>
+              </p>
+
+              <!-- Code + preview panes -->
+              <div class="grid grid-cols-2 gap-3">
+                <div class="rounded-control bg-xl-dark p-3" aria-hidden="true" data-board-pane>
+                  <div class="space-y-1.5" data-code-lines>
+                    <i class="block h-1.5 w-3/4 rounded-full bg-xl-sky/70"></i>
+                    <i class="block h-1.5 w-1/2 rounded-full bg-white/30"></i>
+                    <i class="block h-1.5 w-5/6 rounded-full bg-xl-yellow/80"></i>
+                    <i class="block h-1.5 w-2/3 rounded-full bg-white/30"></i>
+                    <i class="block h-1.5 w-1/3 rounded-full bg-xl-teal/80"></i>
+                  </div>
+                  <p class="mt-3 font-mono text-[10px] text-white/70 sm:text-[11px]"><span data-i18n="boardCoding">Menulis komponen…</span></p>
+                </div>
+                <div class="flex flex-col rounded-control border border-line p-2" data-board-pane>
+                  <div aria-hidden="true" class="flex aspect-[4/3] flex-col justify-end gap-1.5 rounded-lg bg-gradient-to-br from-xl-sky/25 to-xl-blue/10 p-2">
+                    <i class="block h-2 w-2/3 rounded-full bg-xl-dark/70"></i>
+                    <i class="block h-1.5 w-1/2 rounded-full bg-xl-dark/25"></i>
+                    <i class="mt-1 block h-3 w-10 rounded-md bg-xl-yellow"></i>
+                  </div>
+                  <p class="mt-2 flex items-center gap-1.5 text-[11px] font-bold text-ink sm:text-xs">
+                    <span aria-hidden="true" class="size-1.5 rounded-full bg-xl-teal"></span>
+                    <span data-i18n="boardPreview">Halaman event siap</span>
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Balance footer: lights up after a package is chosen (see script.js → renderHeroBalance) -->
+            <div class="group border-t border-line bg-paper/60 px-4 py-3" data-hero-balance data-state="off">
+              <div class="flex items-center justify-between gap-3">
+                <div class="min-w-0">
+                  <p class="text-[11px] font-bold uppercase tracking-[0.08em] text-muted" data-hero-label>Saldo aktif</p>
+                  <p class="font-mono text-base font-semibold text-xl-dark" data-hero-amount>Rp0</p>
+                </div>
+                <p class="flex shrink-0 items-center gap-1.5 rounded-full border border-line bg-white px-2.5 py-1 text-xs font-extrabold text-muted
+                          group-data-[state=ready]:border-xl-yellow group-data-[state=ready]:text-xl-dark
+                          group-data-[state=on]:border-xl-teal/40 group-data-[state=on]:text-teal-ink" aria-live="polite" data-hero-pill>
+                  <span aria-hidden="true" class="size-2 rounded-full bg-line transition-colors duration-300 group-data-[state=ready]:bg-xl-yellow group-data-[state=on]:bg-xl-teal"></span>
+                  <span data-hero-status>Belum nyala</span>
+                </p>
+              </div>
+              <div class="mt-2.5 h-2 overflow-hidden rounded-full bg-line" role="presentation">
+                <div class="h-full w-0 rounded-full bg-gradient-to-r from-xl-teal to-xl-sky opacity-50 transition-[width,opacity] duration-700 ease-out group-data-[state=on]:opacity-100 motion-reduce:transition-none" data-hero-meter></div>
+              </div>
+              <p class="mt-2 font-mono text-[11px] text-muted" data-hero-estimate>Pilih paket untuk menyalakan saldo</p>
+            </div>
+          </div>
+
+        </figure>
+      </div>
+    </section>
+
+    <!-- ============ 3. CARA KERJA ============ -->
+    <section id="cara-kerja" aria-labelledby="how-title" class="border-y border-line bg-white">
+      <div class="shell py-16 sm:py-20 lg:py-24">
+        <div class="max-w-2xl">
+          <p class="text-xs font-extrabold uppercase tracking-[0.12em] text-xl-blue" data-i18n="howKicker">Cara kerja</p>
+          <h2 id="how-title" class="mt-3 text-[clamp(1.75rem,6vw,2.75rem)] font-extrabold leading-[1.1] tracking-[-0.03em] text-xl-dark" data-i18n="howTitle">
+            Dari ide ke proyek, tanpa langkah yang membingungkan.
+          </h2>
+        </div>
+
+        <ol class="mt-10 grid grid-cols-1 gap-4 lg:grid-cols-3" aria-label="Tiga langkah" data-i18n-aria="howStepsAria">
+          <li data-decor-overflow class="relative flex flex-col rounded-card border border-line bg-white p-5 sm:p-6 md:grid md:grid-cols-[minmax(0,14rem)_minmax(0,1fr)] md:gap-x-8 lg:flex after:absolute after:left-[2.375rem] after:top-full after:h-4 after:w-0.5 after:bg-line lg:after:left-full lg:after:top-[2.375rem] lg:after:h-0.5 lg:after:w-4">
+            <div class="flex items-center gap-3">
+              <span aria-hidden="true" class="grid size-11 shrink-0 place-items-center rounded-control font-mono text-sm font-semibold bg-xl-blue/10 text-xl-blue">01</span>
+              <h3 class="text-lg font-extrabold leading-snug text-xl-dark" data-i18n="step1Title">Pilih tujuanmu</h3>
+            </div>
+            <div class="mt-3 md:mt-0 lg:mt-3">
+              <p class="text-base leading-relaxed text-muted" data-i18n="step1Body">Belajar, bikin prototype, atau kerjakan proyek. Kami sarankan paket yang pas.</p>
+              <ul class="mt-4 flex flex-wrap gap-2" aria-label="Pilihan tujuan" data-i18n-aria="step1ChipsAria">
+                  <li class="rounded-full border border-line bg-paper px-2.5 py-1 text-xs font-bold text-muted" data-i18n="intentLearn">Belajar</li>
+                  <li class="rounded-full border border-line bg-paper px-2.5 py-1 text-xs font-bold text-muted" data-i18n="intentPrototype">Prototype</li>
+                  <li class="rounded-full border border-line bg-paper px-2.5 py-1 text-xs font-bold text-muted" data-i18n="intentWork">Kerja</li>
+              </ul>
+            </div>
+          </li>
+          <li data-decor-overflow class="relative flex flex-col rounded-card border border-line bg-white p-5 sm:p-6 md:grid md:grid-cols-[minmax(0,14rem)_minmax(0,1fr)] md:gap-x-8 lg:flex after:absolute after:left-[2.375rem] after:top-full after:h-4 after:w-0.5 after:bg-line lg:after:left-full lg:after:top-[2.375rem] lg:after:h-0.5 lg:after:w-4">
+            <div class="flex items-center gap-3">
+              <span aria-hidden="true" class="grid size-11 shrink-0 place-items-center rounded-control font-mono text-sm font-semibold bg-xl-blue/10 text-xl-blue">02</span>
+              <h3 class="text-lg font-extrabold leading-snug text-xl-dark" data-i18n="step2Title">Bayar dengan mudah</h3>
+            </div>
+            <div class="mt-3 md:mt-0 lg:mt-3">
+              <p class="text-base leading-relaxed text-muted" data-i18n="step2Body">Gunakan QRIS, e-wallet, atau virtual account. Rincian biaya terlihat sebelum bayar.</p>
+              <ul class="mt-4 flex flex-wrap gap-2" aria-label="Keunggulan pembayaran" data-i18n-aria="step2ChipsAria">
+                  <li class="rounded-full border border-line bg-paper px-2.5 py-1 text-xs font-bold text-muted" data-i18n="step2Chip1">Nominal jelas</li>
+                  <li class="rounded-full border border-line bg-paper px-2.5 py-1 text-xs font-bold text-muted" data-i18n="step2Chip2">Biaya tambahan Rp0</li>
+                  <li class="rounded-full border border-line bg-paper px-2.5 py-1 text-xs font-bold text-muted" data-i18n="step2Chip3">Metode lokal</li>
+              </ul>
+            </div>
+          </li>
+          <li class="relative flex flex-col rounded-card border border-line bg-white p-5 sm:p-6 md:grid md:grid-cols-[minmax(0,14rem)_minmax(0,1fr)] md:gap-x-8 lg:flex">
+            <div class="flex items-center gap-3">
+              <span aria-hidden="true" class="grid size-11 shrink-0 place-items-center rounded-control font-mono text-sm font-semibold bg-xl-teal text-xl-dark">03</span>
+              <h3 class="text-lg font-extrabold leading-snug text-xl-dark" data-i18n="step3Title">Lanjutkan membangun</h3>
+            </div>
+            <div class="mt-3 md:mt-0 lg:mt-3">
+              <p class="text-base leading-relaxed text-muted" data-i18n="step3Body">Saldo siap dipakai dan momentum proyek tidak terputus.</p>
+              <ul class="mt-4 flex flex-wrap gap-2" aria-label="Setelah top up" data-i18n-aria="step3ChipsAria">
+                  <li class="rounded-full border border-line bg-paper px-2.5 py-1 text-xs font-bold text-muted" data-i18n="step3Chip1">Status saldo</li>
+                  <li class="rounded-full border border-line bg-paper px-2.5 py-1 text-xs font-bold text-muted" data-i18n="step3Chip2">Riwayat pembelian</li>
+                  <li class="rounded-full border border-line bg-paper px-2.5 py-1 text-xs font-bold text-muted" data-i18n="step3Chip3">Kembali ke proyek</li>
+              </ul>
+            </div>
+          </li>
+        </ol>
+      </div>
+    </section>
+
+    <!-- ============ 4. PAKET ============ -->
+    <section id="paket" aria-labelledby="pkg-title">
+      <div class="shell py-16 sm:py-20 lg:py-24">
+        <div class="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
+          <div class="max-w-2xl">
+            <p class="text-xs font-extrabold uppercase tracking-[0.12em] text-xl-blue" data-i18n="pkgKicker">Paket</p>
+            <h2 id="pkg-title" class="mt-3 text-[clamp(1.75rem,6vw,2.75rem)] font-extrabold leading-[1.1] tracking-[-0.03em] text-xl-dark" data-i18n="pkgTitle">Berapa yang ingin kamu nyalakan?</h2>
+            <p class="mt-4 text-base leading-relaxed text-muted sm:text-lg" data-i18n="pkgLead">Pilih tujuanmu, kami tunjukkan paket yang paling pas. Semua paket bisa dipakai untuk semua model AI.</p>
+          </div>
+
+          <div role="tablist" aria-label="Pilih tujuan" data-i18n-aria="intentTabsAria"
+               class="flex w-full gap-1 rounded-control border border-line bg-white p-1 sm:w-auto sm:self-start lg:self-end">
+            <button type="button" role="tab" id="tab-learn" aria-controls="paket-panel" aria-selected="true" tabindex="0"
+                    class="min-h-11 flex-1 rounded-lg px-4 text-sm font-extrabold text-muted transition-colors hover:text-xl-dark aria-selected:bg-ink aria-selected:text-white sm:flex-none"
+                    data-intent="learn" data-i18n="intentLearn">Belajar</button>
+            <button type="button" role="tab" id="tab-prototype" aria-controls="paket-panel" aria-selected="false" tabindex="-1"
+                    class="min-h-11 flex-1 rounded-lg px-4 text-sm font-extrabold text-muted transition-colors hover:text-xl-dark aria-selected:bg-ink aria-selected:text-white sm:flex-none"
+                    data-intent="prototype" data-i18n="intentPrototype">Prototype</button>
+            <button type="button" role="tab" id="tab-work" aria-controls="paket-panel" aria-selected="false" tabindex="-1"
+                    class="min-h-11 flex-1 rounded-lg px-4 text-sm font-extrabold text-muted transition-colors hover:text-xl-dark aria-selected:bg-ink aria-selected:text-white sm:flex-none"
+                    data-intent="work" data-i18n="intentWork">Kerja</button>
+          </div>
+        </div>
+
+        <div id="paket-panel" role="tabpanel" aria-labelledby="tab-learn" class="mt-8">
+          <!-- Recommendation bar: lets mobile users act without scrolling to the recommended card -->
+          <div class="flex flex-col gap-3 rounded-card bg-xl-dark p-4 text-white sm:flex-row sm:items-center sm:justify-between sm:p-5" aria-live="polite">
+            <p class="flex items-start gap-3">
+              <span aria-hidden="true" class="grid size-8 shrink-0 place-items-center rounded-lg bg-xl-yellow text-sm text-xl-dark">✦</span>
+              <span>
+                <span class="block text-sm font-extrabold" data-reco-title>Paling pas untuk belajar: Mulai · Rp50.000</span>
+                <span class="block text-sm text-white/75" data-reco-body>Titik awal yang ringan untuk belajar dan proyek pertama.</span>
+              </span>
+            </p>
+            <button type="button" class="btn shrink-0 bg-xl-yellow text-xl-dark hover:bg-white" data-choose-recommended>
+              <span data-reco-cta>Pilih Rp50.000</span>
+            </button>
+          </div>
+
+          <ul class="mt-4 grid grid-cols-1 gap-4 lg:grid-cols-3" aria-label="Pilihan paket" data-i18n-aria="pkgListAria">
+            <li>
+              <article class="group/card relative flex h-full flex-col rounded-card border-2 border-line bg-white p-5 transition-[transform,border-color,box-shadow] duration-200 motion-safe:hover:-translate-y-1 hover:shadow-[0_16px_40px_rgba(0,22,106,.10)] sm:p-6
+                              md:grid md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] md:gap-x-8 lg:flex
+                              cursor-pointer data-[highlight=true]:border-xl-blue data-[selected=true]:ring-4 data-[selected=true]:ring-xl-blue/15"
+                       data-package="learn" data-recommended="true" data-highlight="true" data-selected="false" aria-labelledby="pkg-learn-name">
+                <!-- Identity + price -->
+                <div>
+                  <!-- Badge row: collapses when empty on small screens, reserved on lg so prices line up -->
+                  <div class="hidden min-h-7 flex-wrap items-center gap-2 group-data-[recommended=true]/card:flex group-data-[selected=true]/card:flex lg:flex">
+                    <span class="hidden items-center gap-1 rounded-full bg-xl-yellow px-2.5 py-1 text-xs font-extrabold text-xl-dark group-data-[recommended=true]/card:inline-flex">
+                      <span aria-hidden="true">★</span><span data-i18n="badgeRecommended">Paling pas</span>
+                    </span>
+                    <span class="hidden items-center gap-1 rounded-full bg-xl-teal/15 px-2.5 py-1 text-xs font-extrabold text-teal-ink group-data-[selected=true]/card:inline-flex">
+                      <span aria-hidden="true">✓</span><span data-i18n="badgeSelected">Dipilih</span>
+                    </span>
+                  </div>
+
+                  <h3 id="pkg-learn-name" class="text-sm font-extrabold uppercase tracking-[0.1em] text-xl-blue group-data-[recommended=true]/card:mt-3 group-data-[selected=true]/card:mt-3 lg:mt-3">Mulai</h3>
+                  <p class="mt-1 text-sm font-semibold text-muted" data-i18n="pkgFor_learn">Belajar dan mencoba pertama kali</p>
+
+                  <p class="mt-4 text-[clamp(2.25rem,3.4vw+1rem,2.75rem)] font-extrabold leading-none tracking-[-0.04em] text-xl-dark lg:text-[clamp(2rem,2.6vw,2.75rem)]" data-price="50000">Rp50.000</p>
+                  <p class="mt-3 flex flex-col items-start gap-1 text-sm">
+                    <span class="rounded-full bg-xl-yellow/25 px-2.5 py-0.5 font-bold text-xl-dark">+ <span data-i18n="pkgBonus">Bonus</span> <span data-price="5000">Rp5.000</span></span>
+                    <span class="font-semibold text-muted"><span data-i18n="pkgTotal">Total saldo</span> <span data-credit="55000">55.000</span> <span data-i18n="pkgCredits">kredit</span></span>
+                  </p>
+                </div>
+
+                <!-- Fit + action -->
+                <div class="mt-5 flex flex-1 flex-col md:mt-0 lg:mt-5">
+                  <div class="rounded-control bg-paper px-4 py-3">
+                    <p class="text-[11px] font-bold uppercase tracking-[0.08em] text-muted" data-i18n="estimateLabel">Estimasi</p>
+                    <p class="mt-0.5 font-mono text-base font-semibold text-xl-dark" data-i18n="pkgSessions_learn">20–30 sesi kecil</p>
+                  </div>
+                  <p class="mt-4 text-sm leading-relaxed text-muted" data-i18n="pkgHelper_learn">Cocok untuk memahami alur atau menyelesaikan satu mini-task.</p>
+
+                  <div class="mt-auto pt-6">
+                    <button type="button" class="btn w-full border border-line bg-white text-xl-dark hover:border-xl-blue
+                                                 group-data-[highlight=true]/card:border-transparent group-data-[highlight=true]/card:bg-xl-blue group-data-[highlight=true]/card:text-white group-data-[highlight=true]/card:hover:bg-xl-blue-hover"
+                            data-choose-package="learn">
+                      <span data-pkg-cta="learn">Pilih Rp50.000</span>
+                    </button>
+                  </div>
+                </div>
+              </article>
+            </li>
+            <li>
+              <article class="group/card relative flex h-full flex-col rounded-card border-2 border-line bg-white p-5 transition-[transform,border-color,box-shadow] duration-200 motion-safe:hover:-translate-y-1 hover:shadow-[0_16px_40px_rgba(0,22,106,.10)] sm:p-6
+                              md:grid md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] md:gap-x-8 lg:flex
+                              cursor-pointer data-[highlight=true]:border-xl-blue data-[selected=true]:ring-4 data-[selected=true]:ring-xl-blue/15"
+                       data-package="prototype" data-recommended="false" data-highlight="false" data-selected="false" aria-labelledby="pkg-prototype-name">
+                <!-- Identity + price -->
+                <div>
+                  <!-- Badge row: collapses when empty on small screens, reserved on lg so prices line up -->
+                  <div class="hidden min-h-7 flex-wrap items-center gap-2 group-data-[recommended=true]/card:flex group-data-[selected=true]/card:flex lg:flex">
+                    <span class="hidden items-center gap-1 rounded-full bg-xl-yellow px-2.5 py-1 text-xs font-extrabold text-xl-dark group-data-[recommended=true]/card:inline-flex">
+                      <span aria-hidden="true">★</span><span data-i18n="badgeRecommended">Paling pas</span>
+                    </span>
+                    <span class="hidden items-center gap-1 rounded-full bg-xl-teal/15 px-2.5 py-1 text-xs font-extrabold text-teal-ink group-data-[selected=true]/card:inline-flex">
+                      <span aria-hidden="true">✓</span><span data-i18n="badgeSelected">Dipilih</span>
+                    </span>
+                  </div>
+
+                  <h3 id="pkg-prototype-name" class="text-sm font-extrabold uppercase tracking-[0.1em] text-xl-blue group-data-[recommended=true]/card:mt-3 group-data-[selected=true]/card:mt-3 lg:mt-3">Bangun</h3>
+                  <p class="mt-1 text-sm font-semibold text-muted" data-i18n="pkgFor_prototype">Membuat satu prototype aktif</p>
+
+                  <p class="mt-4 text-[clamp(2.25rem,3.4vw+1rem,2.75rem)] font-extrabold leading-none tracking-[-0.04em] text-xl-dark lg:text-[clamp(2rem,2.6vw,2.75rem)]" data-price="100000">Rp100.000</p>
+                  <p class="mt-3 flex flex-col items-start gap-1 text-sm">
+                    <span class="rounded-full bg-xl-yellow/25 px-2.5 py-0.5 font-bold text-xl-dark">+ <span data-i18n="pkgBonus">Bonus</span> <span data-price="15000">Rp15.000</span></span>
+                    <span class="font-semibold text-muted"><span data-i18n="pkgTotal">Total saldo</span> <span data-credit="115000">115.000</span> <span data-i18n="pkgCredits">kredit</span></span>
+                  </p>
+                </div>
+
+                <!-- Fit + action -->
+                <div class="mt-5 flex flex-1 flex-col md:mt-0 lg:mt-5">
+                  <div class="rounded-control bg-paper px-4 py-3">
+                    <p class="text-[11px] font-bold uppercase tracking-[0.08em] text-muted" data-i18n="estimateLabel">Estimasi</p>
+                    <p class="mt-0.5 font-mono text-base font-semibold text-xl-dark" data-i18n="pkgSessions_prototype">40–60 sesi kecil</p>
+                  </div>
+                  <p class="mt-4 text-sm leading-relaxed text-muted" data-i18n="pkgHelper_prototype">Cocok untuk iterasi tampilan, prompt, dan perbaikan singkat.</p>
+
+                  <div class="mt-auto pt-6">
+                    <button type="button" class="btn w-full border border-line bg-white text-xl-dark hover:border-xl-blue
+                                                 group-data-[highlight=true]/card:border-transparent group-data-[highlight=true]/card:bg-xl-blue group-data-[highlight=true]/card:text-white group-data-[highlight=true]/card:hover:bg-xl-blue-hover"
+                            data-choose-package="prototype">
+                      <span data-pkg-cta="prototype">Pilih Rp100.000</span>
+                    </button>
+                  </div>
+                </div>
+              </article>
+            </li>
+            <li>
+              <article class="group/card relative flex h-full flex-col rounded-card border-2 border-line bg-white p-5 transition-[transform,border-color,box-shadow] duration-200 motion-safe:hover:-translate-y-1 hover:shadow-[0_16px_40px_rgba(0,22,106,.10)] sm:p-6
+                              md:grid md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] md:gap-x-8 lg:flex
+                              cursor-pointer data-[highlight=true]:border-xl-blue data-[selected=true]:ring-4 data-[selected=true]:ring-xl-blue/15"
+                       data-package="work" data-recommended="false" data-highlight="false" data-selected="false" aria-labelledby="pkg-work-name">
+                <!-- Identity + price -->
+                <div>
+                  <!-- Badge row: collapses when empty on small screens, reserved on lg so prices line up -->
+                  <div class="hidden min-h-7 flex-wrap items-center gap-2 group-data-[recommended=true]/card:flex group-data-[selected=true]/card:flex lg:flex">
+                    <span class="hidden items-center gap-1 rounded-full bg-xl-yellow px-2.5 py-1 text-xs font-extrabold text-xl-dark group-data-[recommended=true]/card:inline-flex">
+                      <span aria-hidden="true">★</span><span data-i18n="badgeRecommended">Paling pas</span>
+                    </span>
+                    <span class="hidden items-center gap-1 rounded-full bg-xl-teal/15 px-2.5 py-1 text-xs font-extrabold text-teal-ink group-data-[selected=true]/card:inline-flex">
+                      <span aria-hidden="true">✓</span><span data-i18n="badgeSelected">Dipilih</span>
+                    </span>
+                  </div>
+
+                  <h3 id="pkg-work-name" class="text-sm font-extrabold uppercase tracking-[0.1em] text-xl-blue group-data-[recommended=true]/card:mt-3 group-data-[selected=true]/card:mt-3 lg:mt-3">Scale</h3>
+                  <p class="mt-1 text-sm font-semibold text-muted" data-i18n="pkgFor_work">Freelancer atau proyek berkelanjutan</p>
+
+                  <p class="mt-4 text-[clamp(2.25rem,3.4vw+1rem,2.75rem)] font-extrabold leading-none tracking-[-0.04em] text-xl-dark lg:text-[clamp(2rem,2.6vw,2.75rem)]" data-price="250000">Rp250.000</p>
+                  <p class="mt-3 flex flex-col items-start gap-1 text-sm">
+                    <span class="rounded-full bg-xl-yellow/25 px-2.5 py-0.5 font-bold text-xl-dark">+ <span data-i18n="pkgBonus">Bonus</span> <span data-price="50000">Rp50.000</span></span>
+                    <span class="font-semibold text-muted"><span data-i18n="pkgTotal">Total saldo</span> <span data-credit="300000">300.000</span> <span data-i18n="pkgCredits">kredit</span></span>
+                  </p>
+                </div>
+
+                <!-- Fit + action -->
+                <div class="mt-5 flex flex-1 flex-col md:mt-0 lg:mt-5">
+                  <div class="rounded-control bg-paper px-4 py-3">
+                    <p class="text-[11px] font-bold uppercase tracking-[0.08em] text-muted" data-i18n="estimateLabel">Estimasi</p>
+                    <p class="mt-0.5 font-mono text-base font-semibold text-xl-dark" data-i18n="pkgSessions_work">100+ sesi kecil</p>
+                  </div>
+                  <p class="mt-4 text-sm leading-relaxed text-muted" data-i18n="pkgHelper_work">Cocok saat kamu mulai mengerjakan kebutuhan klien atau banyak iterasi.</p>
+
+                  <div class="mt-auto pt-6">
+                    <button type="button" class="btn w-full border border-line bg-white text-xl-dark hover:border-xl-blue
+                                                 group-data-[highlight=true]/card:border-transparent group-data-[highlight=true]/card:bg-xl-blue group-data-[highlight=true]/card:text-white group-data-[highlight=true]/card:hover:bg-xl-blue-hover"
+                            data-choose-package="work">
+                      <span data-pkg-cta="work">Pilih Rp250.000</span>
+                    </button>
+                  </div>
+                </div>
+              </article>
+            </li>
+          </ul>
+
+          <div class="mt-6 flex flex-col gap-2 text-sm sm:flex-row sm:items-center sm:justify-between">
+            <p class="font-bold text-xl-dark" data-i18n="creditRules">1 kredit = Rp1 · Sudah termasuk PPN · Tidak kedaluwarsa</p>
+            <a href="#model" class="inline-flex min-h-11 items-center gap-1 font-extrabold text-xl-blue underline-offset-4 hover:underline">
+              <span data-i18n="seeModels">Lihat model yang bisa dipakai</span><span aria-hidden="true">→</span>
+            </a>
+          </div>
+          <p class="mt-1 text-xs leading-relaxed text-muted" data-i18n="estimateDisclaimer">Estimasi bergantung pada model, panjang prompt, tipe tugas, dan format output.</p>
+        </div>
+
+        <p class="sr-only" aria-live="polite" data-pkg-announce></p>
+      </div>
+    </section>
+
+    <!-- ============ 6. MODEL AI ============ -->
+    <section id="model" aria-labelledby="models-title" class="border-y border-line bg-white">
+      <div class="shell py-16 sm:py-20 lg:py-24">
+        <div class="max-w-2xl">
+          <p class="text-xs font-extrabold uppercase tracking-[0.12em] text-xl-blue" data-i18n="modelsKicker">Model AI</p>
+          <h2 id="models-title" class="mt-3 text-[clamp(1.75rem,6vw,2.75rem)] font-extrabold leading-[1.1] tracking-[-0.03em] text-xl-dark" data-i18n="modelsTitle">Satu saldo untuk semua model.</h2>
+          <p class="mt-4 text-base leading-relaxed text-muted sm:text-lg" data-i18n="modelsBody">Paket apa pun, pilihan modelnya sama. Pilih model hemat untuk tugas ringan, model premium untuk pekerjaan rumit.</p>
+        </div>
+
+        <ul class="mt-10 grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3" aria-label="Model pilihan" data-i18n-aria="modelListAria" data-model-preview></ul>
+
+        <div class="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-6">
+          <button type="button" class="btn btn-secondary min-h-12 w-full sm:w-auto" data-open-catalog>
+            <span data-i18n="modelsCta">Lihat semua model & tarif</span><span aria-hidden="true">→</span>
+          </button>
+          <p class="max-w-xl text-xs leading-relaxed text-muted sm:text-right" data-i18n="modelsNote">1 sesi kecil ≈ satu permintaan perbaikan komponen di tool coding (±40 rb token masuk, ±4 rb token keluar). Contoh — daftar dan tarif dapat berubah.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ 7. PAKAI DI TOOL ============ -->
+    <section id="pakai" aria-labelledby="use-title">
+      <div class="shell grid grid-cols-1 gap-10 py-16 sm:py-20 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)] lg:items-start lg:gap-16 lg:py-24">
+        <div>
+          <p class="text-xs font-extrabold uppercase tracking-[0.12em] text-xl-blue" data-i18n="useKicker">Panduan pasang</p>
+          <h2 id="use-title" class="mt-3 outline-none text-[clamp(1.75rem,6vw,2.75rem)] font-extrabold leading-[1.1] tracking-[-0.03em] text-xl-dark" data-i18n="useTitle">Pakai di tool favoritmu.</h2>
+          <p class="mt-4 text-base leading-relaxed text-muted sm:text-lg" data-i18n="useBody">API key adalah kunci yang menghubungkan tool-mu ke saldo TokenNyala.</p>
+
+          <ol class="mt-8" aria-label="Langkah pemasangan" data-i18n-aria="useStepsAria">
+            <li data-decor-overflow class="relative flex gap-4 pb-8 last:pb-0 after:absolute after:left-[1.3125rem] after:top-12 after:-bottom-2 after:w-0.5 after:bg-line">
+              <span aria-hidden="true" class="grid size-11 shrink-0 place-items-center rounded-control bg-xl-blue font-mono text-sm font-semibold text-white">1</span>
+              <div class="min-w-0 pt-1.5">
+                <h3 class="text-lg font-extrabold text-xl-dark" data-i18n="use1Title">Salin API key</h3>
+                <p class="mt-1 text-base leading-relaxed text-muted" data-i18n="use1Body">Ada di halaman saldo setelah top up.</p>
+              </div>
+            </li>
+            <li data-decor-overflow class="relative flex gap-4 pb-8 last:pb-0 after:absolute after:left-[1.3125rem] after:top-12 after:-bottom-2 after:w-0.5 after:bg-line">
+              <span aria-hidden="true" class="grid size-11 shrink-0 place-items-center rounded-control bg-xl-blue font-mono text-sm font-semibold text-white">2</span>
+              <div class="min-w-0 pt-1.5">
+                <h3 class="text-lg font-extrabold text-xl-dark" data-i18n="use2Title">Tempel di tool</h3>
+                <p class="mt-1 text-base leading-relaxed text-muted" data-i18n="use2Body">Isi Base URL dan API key di pengaturan tool.</p>
+              </div>
+            </li>
+            <li data-decor-overflow class="relative flex gap-4 pb-8 last:pb-0">
+              <span aria-hidden="true" class="grid size-11 shrink-0 place-items-center rounded-control bg-xl-blue font-mono text-sm font-semibold text-white">3</span>
+              <div class="min-w-0 pt-1.5">
+                <h3 class="text-lg font-extrabold text-xl-dark" data-i18n="use3Title">Pilih model & mulai</h3>
+                <p class="mt-1 text-base leading-relaxed text-muted" data-i18n="use3Body">Semua model memakai saldo yang sama.</p>
+              </div>
+            </li>
+          </ol>
+        </div>
+
+        <div class="lg:pt-2">
+          <figure class="rounded-card bg-xl-dark p-5 text-white shadow-[0_24px_60px_rgba(0,22,106,.18)] sm:p-6">
+            <figcaption class="flex flex-wrap items-center justify-between gap-2">
+              <span class="text-sm font-extrabold" data-i18n="useConfigTitle">Contoh konfigurasi</span>
+              <span class="rounded-full bg-white/10 px-2.5 py-0.5 font-mono text-[11px] text-white/75" data-i18n="useConfigTag">contoh</span>
+            </figcaption>
+
+            <dl class="mt-5 space-y-4">
+              <div>
+                <dt class="text-[11px] font-bold uppercase tracking-[0.08em] text-white/60">Base URL</dt>
+                <dd class="mt-1.5 flex flex-col items-start gap-2 rounded-control bg-white/5 p-3 sm:flex-row sm:items-center sm:gap-3 sm:py-1.5 sm:pl-3 sm:pr-1.5">
+                  <code class="min-w-0 flex-1 font-mono text-sm text-xl-sky [overflow-wrap:anywhere]" data-use-url>https://<wbr>api.tokennyala<wbr>.example/v1</code>
+                  <button type="button" class="btn shrink-0 border border-white/25 bg-white/10 px-4 text-white hover:bg-white/20" data-copy-target="[data-use-url]" data-i18n="coCopy">Salin</button>
+                </dd>
+              </div>
+              <div>
+                <dt class="text-[11px] font-bold uppercase tracking-[0.08em] text-white/60">API key</dt>
+                <dd class="mt-1.5 flex flex-col items-start gap-2 rounded-control bg-white/5 p-3 sm:flex-row sm:items-center sm:gap-3 sm:py-1.5 sm:pl-3 sm:pr-1.5">
+                  <code class="min-w-0 flex-1 font-mono text-sm text-xl-yellow [overflow-wrap:anywhere]">tn-demo-••••••••3f9a</code>
+                  <button type="button" class="btn shrink-0 border border-white/25 bg-white/10 px-4 text-white hover:bg-white/20" data-copy-value="tn-demo-7c41e09b5d2a8f6c13e43f9a" data-i18n="coCopy">Salin</button>
+                </dd>
+              </div>
+            </dl>
+
+            <p class="mt-5 text-sm leading-relaxed text-white/75" data-i18n="useCompat">Bisa dipakai di tool yang mendukung OpenAI API, contoh:</p>
+            <ul class="mt-2 flex flex-wrap gap-2" aria-label="Contoh tool" data-i18n-aria="useToolsAria">
+              <li class="rounded-full border border-white/20 px-3 py-1 text-sm font-bold">Cursor</li>
+              <li class="rounded-full border border-white/20 px-3 py-1 text-sm font-bold">Cline</li>
+              <li class="rounded-full border border-white/20 px-3 py-1 text-sm font-bold">Continue</li>
+            </ul>
+            <p class="mt-5 border-t border-white/10 pt-4 text-xs text-white/60" data-i18n="useConfigNote">Contoh — bukan endpoint atau kunci asli.</p>
+          </figure>
+
+          <div class="mt-5 flex flex-col gap-2 rounded-card border border-line bg-white p-4 sm:flex-row sm:items-center sm:justify-between sm:p-5">
+            <p class="text-sm font-bold text-xl-dark" data-i18n="useNoKey">Belum punya API key? Isi saldo dulu, kuncinya langsung muncul.</p>
+            <button type="button" class="btn btn-primary shrink-0" data-open-checkout data-i18n="navCta">Isi saldo</button>
+          </div>
+        </div>
+      </div>
+      <p class="sr-only" aria-live="polite" data-page-live></p>
+    </section>
+
+    <!-- ============ 8. MANFAAT + DASHBOARD ============ -->
+    <section id="manfaat" aria-labelledby="benefit-title" class="border-y border-line bg-white">
+      <div class="shell py-16 sm:py-20 lg:py-24">
+        <div class="max-w-2xl">
+          <p class="text-xs font-extrabold uppercase tracking-[0.12em] text-xl-blue" data-i18n="benefitKicker">Kenapa TokenNyala</p>
+          <h2 id="benefit-title" class="mt-3 text-[clamp(1.75rem,6vw,2.75rem)] font-extrabold leading-[1.1] tracking-[-0.03em] text-xl-dark" data-i18n="benefitTitle">Jangan hanya beli saldo. Pastikan proyekmu punya waktu untuk jadi.</h2>
+        </div>
+
+        <div class="mt-10 grid grid-cols-1 gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.25fr)]">
+          <div class="grid grid-cols-1 gap-4 md:grid-cols-3 lg:grid-cols-1">
+            <article class="rounded-card border border-line bg-white p-5 sm:p-6">
+              <span aria-hidden="true" class="grid size-11 shrink-0 place-items-center rounded-control bg-xl-blue/10 text-xl-blue"><svg class="size-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h16v10H8l-4 4z"/><path d="M8 9h8M8 12h5"/></svg></span>
+              <h3 class="mt-4 text-lg font-extrabold leading-snug text-xl-dark" data-i18n="ben1Title">Pilihan yang bisa kamu pahami</h3>
+              <p class="mt-2 text-base leading-relaxed text-muted" data-i18n="ben1Body">Nominal dan estimasi dijelaskan dari kebutuhan proyek, bukan dari nama model dan istilah teknis.</p>
+            </article>
+            <article class="rounded-card border border-line bg-white p-5 sm:p-6">
+              <span aria-hidden="true" class="grid size-11 shrink-0 place-items-center rounded-control bg-xl-blue/10 text-xl-blue"><svg class="size-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="7" width="16" height="10" rx="2"/><path d="M21 10v4"/><path d="M6 10h6v4H6z"/></svg></span>
+              <h3 class="mt-4 text-lg font-extrabold leading-snug text-xl-dark" data-i18n="ben2Title">Satu saldo untuk lanjut</h3>
+              <p class="mt-2 text-base leading-relaxed text-muted" data-i18n="ben2Body">Isi sekali, lalu pakai untuk semua model AI yang tersedia.</p>
+            </article>
+            <article class="rounded-card border border-line bg-white p-5 sm:p-6">
+              <span aria-hidden="true" class="grid size-11 shrink-0 place-items-center rounded-control bg-xl-blue/10 text-xl-blue"><svg class="size-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="6" height="6" rx="1"/><rect x="14" y="4" width="6" height="6" rx="1"/><rect x="4" y="14" width="6" height="6" rx="1"/><path d="M14 14h2v2h-2zM18 18h2v2h-2zM14 18h2M18 14h2"/></svg></span>
+              <h3 class="mt-4 text-lg font-extrabold leading-snug text-xl-dark" data-i18n="ben3Title">Bayar dengan cara yang familiar</h3>
+              <p class="mt-2 text-base leading-relaxed text-muted" data-i18n="ben3Body">QRIS, e-wallet, dan virtual account — metode yang sehari-hari dipakai di Indonesia.</p>
+            </article>
+          </div>
+
+          <!-- Benefit 4 + mock dashboard (G6) -->
+          <article class="flex flex-col rounded-card border border-line bg-white p-5 sm:p-6" aria-labelledby="ben4-title">
+            <div>
+              <span aria-hidden="true" class="grid size-11 shrink-0 place-items-center rounded-control bg-xl-blue/10 text-xl-blue"><svg class="size-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19V5"/><path d="M4 19h16"/><path d="M8 15v-4M12 15V8M16 15v-6"/></svg></span>
+              <div class="mt-4 min-w-0">
+                <h3 id="ben4-title" class="text-lg font-extrabold leading-snug text-xl-dark" data-i18n="ben4Title">Pantau dan kendalikan</h3>
+                <p class="mt-1 text-base leading-relaxed text-muted" data-i18n="ben4Body">Lihat sisa saldo, pemakaian harian, dan matikan API key kapan saja.</p>
+              </div>
+            </div>
+
+            <div class="relative mt-5 flex-1 rounded-control bg-paper p-4 sm:p-5">
+              <span class="absolute right-3 top-3 rounded-full border border-line bg-white px-2 py-0.5 text-[11px] font-bold text-muted" data-i18n="sampleView">Contoh tampilan</span>
+
+              <p class="text-[11px] font-bold uppercase tracking-[0.08em] text-muted" data-i18n="dashBalance">Saldo tersisa</p>
+              <p class="mt-1 flex flex-wrap items-baseline gap-x-2">
+                <span class="font-mono text-2xl font-semibold text-xl-dark" data-price="82400">Rp82.400</span>
+                <span class="text-sm text-muted"><span data-i18n="dashOf">dari</span> <span data-credit="115000">115.000</span> <span data-i18n="pkgCredits">kredit</span></span>
+              </p>
+              <div class="mt-2 h-2 overflow-hidden rounded-full bg-line" role="presentation"><div class="h-full w-[72%] rounded-full bg-xl-teal"></div></div>
+
+              <!-- Usage chart: single series → no legend; direct label on the peak only; full data in the list for screen readers -->
+              <figure class="mt-6">
+                <figcaption class="text-sm font-extrabold text-xl-dark" data-i18n="dashUsage">Pemakaian 7 hari</figcaption>
+                <ul class="mt-2 flex h-36 items-end gap-[2px] border-b border-line pt-7" data-usage-chart aria-label="Pemakaian 7 hari terakhir" data-i18n-aria="dashUsageAria"></ul>
+                <ul class="mt-1.5 flex gap-[2px]" aria-hidden="true" data-usage-days></ul>
+              </figure>
+
+              <div class="mt-6 space-y-2">
+                <div class="flex items-center justify-between gap-3 rounded-control bg-white px-3 py-2">
+                  <span id="dash-remind-label" class="text-sm font-semibold text-ink" data-i18n="dashRemind">Ingatkan saat saldo &lt; Rp20.000</span>
+                  <button type="button" role="switch" aria-checked="true" aria-labelledby="dash-remind-label" data-switch
+                          class="group/sw relative inline-flex h-11 w-14 shrink-0 items-center justify-center">
+                    <span aria-hidden="true" class="flex h-7 w-12 items-center rounded-full bg-line p-0.5 transition-colors group-aria-checked/sw:bg-xl-blue">
+                      <span class="size-6 rounded-full bg-white shadow transition-transform group-aria-checked/sw:translate-x-5 motion-reduce:transition-none"></span>
+                    </span>
+                  </button>
+                </div>
+                <div class="flex items-center justify-between gap-3 rounded-control bg-white px-3 py-2" data-key-row data-active="true">
+                  <span class="min-w-0 text-sm">
+                    <span class="flex flex-wrap items-center gap-x-2 gap-y-1">
+                      <span class="font-semibold text-ink" data-i18n="dashKeyName">Laptop kerja</span>
+                      <span class="rounded-full px-2 py-0.5 text-xs font-extrabold" data-key-status></span>
+                    </span>
+                    <span class="mt-0.5 block font-mono text-xs text-muted">tn-demo-…3f9a</span>
+                  </span>
+                  <button type="button" class="btn btn-secondary min-h-11 px-3 text-xs" data-key-toggle></button>
+                </div>
+              </div>
+              <p class="sr-only" aria-live="polite" data-dash-live></p>
+            </div>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ 8b. CONTOH PENGGUNAAN ============ -->
+    <section id="contoh" aria-labelledby="example-title">
+      <div class="shell grid grid-cols-1 gap-8 py-16 sm:py-20 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)] lg:items-center lg:gap-16 lg:py-24">
+        <div>
+          <p class="text-xs font-extrabold uppercase tracking-[0.12em] text-xl-blue" data-i18n="exKicker">Contoh penggunaan</p>
+          <h2 id="example-title" class="mt-3 text-[clamp(1.75rem,6vw,2.75rem)] font-extrabold leading-[1.1] tracking-[-0.03em] text-xl-dark" data-i18n="exTitle">Satu landing page event, kira-kira butuh berapa?</h2>
+          <p class="mt-4 text-base leading-relaxed text-muted sm:text-lg" data-i18n="exBody">Begini perkiraan pemakaian saat kamu membangun satu halaman dengan bantuan AI, memakai model level Seimbang.</p>
+        </div>
+
+        <figure class="rounded-card border border-line bg-white p-5 sm:p-6">
+          <figcaption class="flex flex-wrap items-center justify-between gap-2">
+            <span class="text-sm font-extrabold text-xl-dark" data-i18n="exProject">Proyek: Event Landing Page</span>
+            <span class="rounded-full bg-paper px-2.5 py-0.5 font-mono text-[11px] text-muted" data-i18n="useConfigTag">contoh</span>
+          </figcaption>
+          <dl class="mt-4 divide-y divide-line text-sm">
+            <div class="flex items-baseline justify-between gap-4 py-2.5"><dt class="text-ink" data-i18n="exTask1">Buat layout awal halaman</dt><dd class="shrink-0 font-mono text-xl-dark">3–5</dd></div>
+            <div class="flex items-baseline justify-between gap-4 py-2.5"><dt class="text-ink" data-i18n="exTask2">Rapikan tampilan mobile</dt><dd class="shrink-0 font-mono text-xl-dark">2–4</dd></div>
+            <div class="flex items-baseline justify-between gap-4 py-2.5"><dt class="text-ink" data-i18n="exTask3">Tambah form pendaftaran</dt><dd class="shrink-0 font-mono text-xl-dark">4–6</dd></div>
+            <div class="flex items-baseline justify-between gap-4 py-2.5"><dt class="text-ink" data-i18n="exTask4">Perbaiki copy dan warna</dt><dd class="shrink-0 font-mono text-xl-dark">2–3</dd></div>
+            <div class="flex items-baseline justify-between gap-4 pt-3"><dt class="font-extrabold text-xl-dark" data-i18n="exTotal">Total sesi kecil</dt><dd class="shrink-0 font-mono font-semibold text-xl-dark">11–18</dd></div>
+          </dl>
+          <p class="mt-4 rounded-control bg-xl-teal/10 px-3 py-2.5 text-sm text-ink">
+            <span class="font-extrabold" data-i18n="exCostLabel">Perkiraan biaya:</span>
+            <span class="font-mono font-semibold"><span data-price="21000">Rp21.000</span>–<span data-price="34000">Rp34.000</span></span>.
+            <span data-i18n="exFit">Paket Mulai (55.000 kredit) cukup, masih ada sisa untuk iterasi.</span>
+          </p>
+          <div class="mt-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <p class="text-xs leading-relaxed text-muted" data-i18n="estimateDisclaimer">Estimasi bergantung pada model, panjang prompt, tipe tugas, dan format output.</p>
+            <button type="button" class="btn btn-primary shrink-0" data-choose-package="learn" data-i18n="exCta">Pilih paket Mulai</button>
+          </div>
+        </figure>
+      </div>
+    </section>
+
+    <!-- ============ 9. UNTUK TIM & BISNIS ============ -->
+    <section id="tim" aria-labelledby="team-title" class="border-y border-line bg-white">
+      <div class="shell py-16 sm:py-20">
+        <div class="grid grid-cols-1 gap-8 rounded-card bg-xl-dark p-6 text-white sm:p-8 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-center lg:gap-12 lg:p-10">
+          <div>
+            <p class="text-xs font-extrabold uppercase tracking-[0.12em] text-xl-sky" data-i18n="teamKicker">Untuk tim & bisnis</p>
+            <h2 id="team-title" class="mt-3 text-[clamp(1.5rem,5vw,2.25rem)] font-extrabold leading-[1.15] tracking-[-0.02em]" data-i18n="teamTitle">Butuh untuk tim atau perusahaan?</h2>
+            <ul class="mt-6 grid grid-cols-1 gap-3 text-base font-semibold sm:grid-cols-2">
+              <li class="flex items-center gap-3"><span aria-hidden="true" class="grid size-6 shrink-0 place-items-center rounded-full bg-xl-teal text-xs font-extrabold text-xl-dark">✓</span><span data-i18n="teamPt1">Invoice atas nama perusahaan</span></li>
+              <li class="flex items-center gap-3"><span aria-hidden="true" class="grid size-6 shrink-0 place-items-center rounded-full bg-xl-teal text-xs font-extrabold text-xl-dark">✓</span><span data-i18n="teamPt2">Faktur pajak</span></li>
+              <li class="flex items-center gap-3"><span aria-hidden="true" class="grid size-6 shrink-0 place-items-center rounded-full bg-xl-teal text-xs font-extrabold text-xl-dark">✓</span><span data-i18n="teamPt3">Bayar lewat transfer bank</span></li>
+              <li class="flex items-center gap-3"><span aria-hidden="true" class="grid size-6 shrink-0 place-items-center rounded-full bg-xl-teal text-xs font-extrabold text-xl-dark">✓</span><span data-i18n="teamPt4">Pantau pemakaian tiap anggota</span></li>
+            </ul>
+          </div>
+          <div class="flex flex-col gap-2 lg:items-end">
+            <button type="button" class="btn min-h-12 w-full bg-xl-yellow px-6 text-base text-xl-dark hover:bg-white lg:w-auto" data-open-consult data-i18n="teamCta">Konsultasi untuk tim</button>
+            <p class="text-sm text-white/70 lg:text-right" data-i18n="teamReply">Kami balas dalam 1 hari kerja.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ 10. FAQ ============ -->
+    <section id="faq" aria-labelledby="faq-title">
+      <div class="shell grid grid-cols-1 gap-8 py-16 sm:py-20 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.8fr)] lg:gap-16 lg:py-24">
+        <div>
+          <p class="text-xs font-extrabold uppercase tracking-[0.12em] text-xl-blue" data-i18n="faqKicker">FAQ</p>
+          <h2 id="faq-title" class="mt-3 text-[clamp(1.75rem,6vw,2.75rem)] font-extrabold leading-[1.1] tracking-[-0.03em] text-xl-dark" data-i18n="faqTitle">Pertanyaan yang sering muncul.</h2>
+          <p class="mt-4 text-base leading-relaxed text-muted" data-i18n="faqBody">Belum menemukan jawabannya? Tim kami siap membantu.</p>
+          <button type="button" class="btn btn-secondary mt-5" data-open-chat data-i18n="faqAsk">Tanya Nala</button>
+        </div>
+        <div class="border-t border-line">
+            <details class="group/f border-b border-line">
+              <summary class="flex min-h-14 cursor-pointer list-none items-start justify-between gap-4 py-4 text-base font-extrabold text-xl-dark hover:text-xl-blue [&::-webkit-details-marker]:hidden">
+                <span data-i18n="faqQ1">Kapan saldo aktif?</span>
+                <svg aria-hidden="true" class="mt-0.5 size-5 shrink-0 text-xl-blue transition-transform group-open/f:rotate-180 motion-reduce:transition-none" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
+              </summary>
+              <p class="pb-5 pr-9 text-base leading-relaxed text-muted" data-i18n="faqA1">Pada produk nyata, saldo aktif setelah pembayaran dikonfirmasi — biasanya dalam hitungan menit. Pada prototype ini, konfirmasi hanya menampilkan status sukses simulasi.</p>
+            </details>
+            <details class="group/f border-b border-line">
+              <summary class="flex min-h-14 cursor-pointer list-none items-start justify-between gap-4 py-4 text-base font-extrabold text-xl-dark hover:text-xl-blue [&::-webkit-details-marker]:hidden">
+                <span data-i18n="faqQ2">Model AI apa saja yang bisa dipakai?</span>
+                <svg aria-hidden="true" class="mt-0.5 size-5 shrink-0 text-xl-blue transition-transform group-open/f:rotate-180 motion-reduce:transition-none" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
+              </summary>
+              <p class="pb-5 pr-9 text-base leading-relaxed text-muted" data-i18n="faqA2">Satu saldo bisa dipakai untuk semua model yang tersedia, misalnya Claude, GPT, Gemini, DeepSeek, dan Qwen. Paket apa pun, pilihan modelnya sama. Model hemat membuat saldo lebih awet; model premium lebih kuat untuk tugas rumit.</p>
+            </details>
+            <details class="group/f border-b border-line">
+              <summary class="flex min-h-14 cursor-pointer list-none items-start justify-between gap-4 py-4 text-base font-extrabold text-xl-dark hover:text-xl-blue [&::-webkit-details-marker]:hidden">
+                <span data-i18n="faqQ3">Apakah saldo bisa kedaluwarsa?</span>
+                <svg aria-hidden="true" class="mt-0.5 size-5 shrink-0 text-xl-blue transition-transform group-open/f:rotate-180 motion-reduce:transition-none" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
+              </summary>
+              <p class="pb-5 pr-9 text-base leading-relaxed text-muted" data-i18n="faqA3">Tidak. Saldo dan bonus kredit tidak kedaluwarsa. Saldo tidak bisa diuangkan atau dipindahkan ke akun lain.</p>
+            </details>
+            <details class="group/f border-b border-line">
+              <summary class="flex min-h-14 cursor-pointer list-none items-start justify-between gap-4 py-4 text-base font-extrabold text-xl-dark hover:text-xl-blue [&::-webkit-details-marker]:hidden">
+                <span data-i18n="faqQ4">Apakah harga sudah termasuk PPN?</span>
+                <svg aria-hidden="true" class="mt-0.5 size-5 shrink-0 text-xl-blue transition-transform group-open/f:rotate-180 motion-reduce:transition-none" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
+              </summary>
+              <p class="pb-5 pr-9 text-base leading-relaxed text-muted" data-i18n="faqA4">Ya. Harga paket sudah termasuk PPN, tanpa biaya tambahan. 1 kredit setara Rp1.</p>
+            </details>
+            <details class="group/f border-b border-line">
+              <summary class="flex min-h-14 cursor-pointer list-none items-start justify-between gap-4 py-4 text-base font-extrabold text-xl-dark hover:text-xl-blue [&::-webkit-details-marker]:hidden">
+                <span data-i18n="faqQ5">Apakah estimasi jumlah sesi pasti?</span>
+                <svg aria-hidden="true" class="mt-0.5 size-5 shrink-0 text-xl-blue transition-transform group-open/f:rotate-180 motion-reduce:transition-none" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
+              </summary>
+              <p class="pb-5 pr-9 text-base leading-relaxed text-muted" data-i18n="faqA5">Tidak. Panjang prompt, model, dan format output memengaruhi pemakaian. Estimasi di halaman ini memakai satu “sesi kecil” (±40 rb token masuk, ±4 rb token keluar) sebagai patokan.</p>
+            </details>
+            <details class="group/f border-b border-line">
+              <summary class="flex min-h-14 cursor-pointer list-none items-start justify-between gap-4 py-4 text-base font-extrabold text-xl-dark hover:text-xl-blue [&::-webkit-details-marker]:hidden">
+                <span data-i18n="faqQ6">Apakah saldo terpotong kalau permintaan gagal?</span>
+                <svg aria-hidden="true" class="mt-0.5 size-5 shrink-0 text-xl-blue transition-transform group-open/f:rotate-180 motion-reduce:transition-none" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
+              </summary>
+              <p class="pb-5 pr-9 text-base leading-relaxed text-muted" data-i18n="faqA6">Tidak. Permintaan yang gagal dan tidak menghasilkan jawaban tidak memotong saldo.</p>
+            </details>
+            <details class="group/f border-b border-line">
+              <summary class="flex min-h-14 cursor-pointer list-none items-start justify-between gap-4 py-4 text-base font-extrabold text-xl-dark hover:text-xl-blue [&::-webkit-details-marker]:hidden">
+                <span data-i18n="faqQ7">Metode pembayaran apa saja?</span>
+                <svg aria-hidden="true" class="mt-0.5 size-5 shrink-0 text-xl-blue transition-transform group-open/f:rotate-180 motion-reduce:transition-none" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
+              </summary>
+              <p class="pb-5 pr-9 text-base leading-relaxed text-muted" data-i18n="faqA7">QRIS, e-wallet (DANA, GoPay, OVO), dan virtual account. Di prototype ini semuanya simulasi.</p>
+            </details>
+            <details class="group/f border-b border-line">
+              <summary class="flex min-h-14 cursor-pointer list-none items-start justify-between gap-4 py-4 text-base font-extrabold text-xl-dark hover:text-xl-blue [&::-webkit-details-marker]:hidden">
+                <span data-i18n="faqQ8">Bisakah refund atau batal?</span>
+                <svg aria-hidden="true" class="mt-0.5 size-5 shrink-0 text-xl-blue transition-transform group-open/f:rotate-180 motion-reduce:transition-none" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
+              </summary>
+              <p class="pb-5 pr-9 text-base leading-relaxed text-muted" data-i18n="faqA8">Pembayaran yang belum selesai bisa dibatalkan kapan saja. Saldo yang sudah masuk tidak bisa diuangkan. Kebijakan refund lengkap akan ditetapkan sebelum peluncuran; prototype ini tidak memproses transaksi nyata.</p>
+            </details>
+            <details class="group/f border-b border-line">
+              <summary class="flex min-h-14 cursor-pointer list-none items-start justify-between gap-4 py-4 text-base font-extrabold text-xl-dark hover:text-xl-blue [&::-webkit-details-marker]:hidden">
+                <span data-i18n="faqQ9">Ke mana data prompt saya dikirim?</span>
+                <svg aria-hidden="true" class="mt-0.5 size-5 shrink-0 text-xl-blue transition-transform group-open/f:rotate-180 motion-reduce:transition-none" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
+              </summary>
+              <p class="pb-5 pr-9 text-base leading-relaxed text-muted" data-i18n="faqA9">Prompt dikirim ke penyedia model yang kamu pilih untuk diproses, dan bisa diproses di pusat data di luar Indonesia. Kami tidak memakai prompt atau hasilnya untuk melatih model. Pada prototype ini tidak ada data yang dikirim.</p>
+            </details>
+            <details class="group/f border-b border-line">
+              <summary class="flex min-h-14 cursor-pointer list-none items-start justify-between gap-4 py-4 text-base font-extrabold text-xl-dark hover:text-xl-blue [&::-webkit-details-marker]:hidden">
+                <span data-i18n="faqQ10">Bagaimana kalau API key saya bocor?</span>
+                <svg aria-hidden="true" class="mt-0.5 size-5 shrink-0 text-xl-blue transition-transform group-open/f:rotate-180 motion-reduce:transition-none" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
+              </summary>
+              <p class="pb-5 pr-9 text-base leading-relaxed text-muted" data-i18n="faqA10">Nonaktifkan API key itu dari halaman saldo, lalu buat yang baru. Semua pemakaian lewat API key memotong saldomu, jadi simpan seperti kata sandi.</p>
+            </details>
+            <details class="group/f border-b border-line">
+              <summary class="flex min-h-14 cursor-pointer list-none items-start justify-between gap-4 py-4 text-base font-extrabold text-xl-dark hover:text-xl-blue [&::-webkit-details-marker]:hidden">
+                <span data-i18n="faqQ11">Bisakah membeli untuk tim dan meminta invoice perusahaan?</span>
+                <svg aria-hidden="true" class="mt-0.5 size-5 shrink-0 text-xl-blue transition-transform group-open/f:rotate-180 motion-reduce:transition-none" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
+              </summary>
+              <p class="pb-5 pr-9 text-base leading-relaxed text-muted" data-i18n="faqA11">Bisa. Kami bantu siapkan invoice atas nama perusahaan, faktur pajak, dan pemantauan pemakaian per anggota. Klik “Konsultasi untuk tim” dan kami hubungi dalam 1 hari kerja.</p>
+            </details>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ 11. FINAL CTA ============ -->
+    <section id="mulai" aria-labelledby="final-title" class="pb-16 sm:pb-20 lg:pb-24">
+      <div class="shell">
+        <div class="relative overflow-hidden rounded-card bg-xl-blue px-6 py-10 text-white sm:px-10 sm:py-14 lg:flex lg:items-center lg:justify-between lg:gap-12 lg:px-14">
+          <div aria-hidden="true" class="pointer-events-none absolute -right-24 -top-24 size-72 rounded-full bg-xl-sky/25"></div>
+          <div aria-hidden="true" class="pointer-events-none absolute -bottom-32 right-24 size-64 rounded-full bg-xl-teal/20"></div>
+          <div class="relative max-w-xl">
+            <h2 id="final-title" class="text-[clamp(2rem,7vw,3.25rem)] font-extrabold leading-[1.05] tracking-[-0.04em]" data-i18n="finalTitle">Nyala sekarang.</h2>
+            <p class="mt-4 text-base leading-relaxed text-white/85 sm:text-lg" data-i18n="finalBody">Isi saldo AI dalam hitungan menit, pahami apa yang bisa dikerjakan paketmu, lalu lanjut membangun.</p>
+            <p class="mt-5 text-sm font-bold text-white/80" data-i18n="finalTrust">Biaya tambahan Rp0 · Bayar lokal · Saldo tidak kedaluwarsa</p>
+          </div>
+          <div class="relative mt-8 flex flex-col gap-3 sm:flex-row lg:mt-0 lg:shrink-0 lg:flex-col">
+            <button type="button" class="btn min-h-13 bg-xl-yellow px-7 text-base text-xl-dark hover:bg-white" data-open-checkout data-i18n="navCta">Isi saldo</button>
+            <a href="#paket" class="btn min-h-13 border border-white/40 px-7 text-base text-white hover:bg-white/10" data-i18n="finalSecondary">Lihat paket</a>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- ============ FOOTER ============ -->
+  <footer class="bg-xl-dark text-white">
+    <div class="shell grid gap-10 py-12 sm:py-16 lg:grid-cols-[1.4fr_1fr_1fr]">
+      <div>
+        <a href="#top" class="inline-flex min-h-11 items-center gap-2 text-lg font-extrabold tracking-tight"
+           aria-label="TokenNyala — kembali ke atas" data-i18n-aria="brandAria">
+          <img src="assets/tokennyala-mark.svg" alt="" width="32" height="32" class="size-8 rounded-lg">
+          <span>Token<span class="text-xl-sky">Nyala</span></span>
+        </a>
+        <p class="mt-4 max-w-xs text-sm leading-relaxed text-white/75" data-i18n="footerTagline">
+          Saldo AI untuk ide yang siap menjadi proyek.
+        </p>
+      </div>
+
+      <nav aria-labelledby="footer-explore">
+        <h2 id="footer-explore" class="text-xs font-extrabold uppercase tracking-[0.12em] text-white/60" data-i18n="footerExplore">Jelajahi</h2>
+        <ul class="mt-3 grid grid-cols-2 gap-x-6 text-sm font-semibold lg:grid-cols-1">
+          <li><a class="flex min-h-11 items-center hover:text-xl-sky" href="#cara-kerja" data-i18n="navHow">Cara kerja</a></li>
+          <li><a class="flex min-h-11 items-center hover:text-xl-sky" href="#paket" data-i18n="navPackages">Paket</a></li>
+          <li><a class="flex min-h-11 items-center hover:text-xl-sky" href="#model" data-i18n="navModels">Model AI</a></li>
+          <li><a class="flex min-h-11 items-center hover:text-xl-sky" href="#faq" data-i18n="navFaq">FAQ</a></li>
+        </ul>
+      </nav>
+
+      <nav aria-labelledby="footer-legal">
+        <h2 id="footer-legal" class="text-xs font-extrabold uppercase tracking-[0.12em] text-white/60" data-i18n="footerLegal">Bantuan & legal</h2>
+        <ul class="mt-3 grid grid-cols-2 gap-x-6 text-sm font-semibold lg:grid-cols-1">
+          <li><a class="flex min-h-11 items-center hover:text-xl-sky" href="#" data-mock-link data-i18n="footerTerms">Syarat & Ketentuan</a></li>
+          <li><a class="flex min-h-11 items-center hover:text-xl-sky" href="#" data-mock-link data-i18n="footerPrivacy">Kebijakan Privasi</a></li>
+          <li><a class="flex min-h-11 items-center hover:text-xl-sky" href="#" data-mock-link data-i18n="footerContact">Hubungi kami</a></li>
+        </ul>
+      </nav>
+    </div>
+
+    <div class="border-t border-white/10">
+      <div class="shell flex flex-col gap-1 py-5 text-xs text-white/60 sm:flex-row sm:items-center sm:justify-between">
+        <p>© 2026 TokenNyala</p>
+        <p data-i18n="footerPrototype">Konsep interaktif — tidak ada transaksi nyata. Tautan legal adalah contoh.</p>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Model card template (rendered by script.js → renderModels) -->
+  <template id="model-card">
+    <li>
+      <article class="flex h-full flex-col rounded-card border border-line bg-white p-5">
+        <div class="flex items-center gap-3">
+          <span aria-hidden="true" class="grid size-11 shrink-0 place-items-center rounded-full border border-line bg-white"><img src="" alt="" width="24" height="24" class="size-6" loading="lazy" decoding="async" data-m-icon></span>
+          <h3 class="min-w-0 flex-1 text-base font-extrabold leading-snug text-xl-dark" data-m-name></h3>
+          <span class="shrink-0 rounded-full px-2.5 py-1 text-xs font-extrabold" data-m-tier></span>
+        </div>
+        <p class="mt-3 text-sm text-muted" data-m-meta></p>
+        <p class="mt-4 flex flex-wrap items-baseline gap-x-2">
+          <span class="font-mono text-2xl font-semibold text-xl-dark" data-m-sessions></span>
+          <span class="text-sm font-semibold text-muted" data-m-sessions-unit></span>
+        </p>
+        <details class="group/d mt-3">
+          <summary class="flex min-h-11 cursor-pointer list-none items-center gap-1.5 text-sm font-extrabold text-xl-blue [&::-webkit-details-marker]:hidden">
+            <svg aria-hidden="true" class="size-4 transition-transform group-open/d:rotate-90 motion-reduce:transition-none" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg>
+            <span data-m-rates-label></span>
+          </summary>
+          <div class="mt-1 rounded-control bg-paper px-3 py-2.5 text-sm">
+            <p class="text-[11px] font-bold uppercase tracking-[0.08em] text-muted" data-m-rate-caption></p>
+          <dl class="mt-1.5 grid grid-cols-[auto_minmax(0,1fr)] gap-x-4 gap-y-1">
+            <dt class="text-muted" data-m-k="rateInput"></dt><dd class="text-right font-mono text-xl-dark" data-m-in></dd>
+            <dt class="text-muted" data-m-k="rateOutput"></dt><dd class="text-right font-mono text-xl-dark" data-m-out></dd>
+            <dt class="text-muted" data-m-k="rateContext"></dt><dd class="text-right font-mono text-xl-dark" data-m-ctx></dd>
+          </dl>
+          </div>
+        </details>
+      </article>
+    </li>
+  </template>
+
+  <!-- ============ 6b. KATALOG MODEL (dialog) ============
+       Mobile: full screen, filters behind a toggle. md+: centered, filters always visible. -->
+  <dialog data-lenis-prevent id="catalog" aria-labelledby="cat-title"
+          class="m-0 h-dvh max-h-none w-full max-w-none flex-col overflow-hidden bg-paper p-0 text-ink
+                 backdrop:bg-xl-dark/55 open:flex open:animate-dialog-in motion-reduce:open:animate-none
+                 md:m-auto md:h-auto md:max-h-[85dvh] md:max-w-4xl md:rounded-card md:shadow-2xl">
+    <div class="relative shrink-0 border-b border-line bg-white px-4 pb-3 pt-3 sm:px-6 md:pt-5">
+      <div class="flex items-start gap-3">
+        <div class="min-w-0 flex-1">
+          <h2 id="cat-title" tabindex="-1" class="text-lg font-extrabold text-xl-dark outline-none sm:text-xl" data-i18n="catTitle">Model AI yang tersedia</h2>
+          <p class="mt-0.5 text-sm text-muted" data-i18n="catSubtitle">Satu saldo untuk semua model. Paket apa pun, pilihan modelnya sama.</p>
+        </div>
+        <button type="button" class="grid size-11 shrink-0 place-items-center rounded-control text-muted hover:bg-paper hover:text-ink"
+                aria-label="Tutup katalog model" data-i18n-aria="catClose" data-cat-close>
+          <svg aria-hidden="true" class="size-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>
+        </button>
+      </div>
+
+      <div class="mt-3 flex gap-2">
+        <label for="cat-search" class="sr-only" data-i18n="catSearchLabel">Cari model</label>
+        <div class="relative min-w-0 flex-1">
+          <svg aria-hidden="true" class="pointer-events-none absolute left-3 top-1/2 size-5 -translate-y-1/2 text-muted" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+          <input id="cat-search" type="search" autocomplete="off" enterkeyhint="search"
+                 class="block min-h-12 w-full rounded-control border-2 border-line bg-white pl-10 pr-3 text-base placeholder:text-muted/70 focus:border-xl-blue focus:outline-none"
+                 placeholder="Cari model, misalnya Claude" data-i18n-placeholder="catSearchPlaceholder">
+        </div>
+        <button type="button" class="btn btn-secondary min-h-12 shrink-0 px-4 md:hidden" aria-expanded="false" aria-controls="cat-filters" data-filter-toggle>
+          <svg aria-hidden="true" class="size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round"><path d="M4 6h16M7 12h10M10 18h4"/></svg>
+          <span data-filter-toggle-label>Filter</span>
+        </button>
+      </div>
+
+      <div id="cat-filters" class="mt-3 hidden gap-3 md:grid md:grid-cols-[auto_minmax(0,1fr)] md:gap-x-6 md:gap-y-3 data-[open=true]:grid" data-open="false">
+          <div role="group" aria-labelledby="flt-use" class="min-w-0">
+            <p id="flt-use" class="text-[11px] font-extrabold uppercase tracking-[0.08em] text-muted" data-i18n="filterUse">Kegunaan</p>
+            <div class="-mx-4 mt-1.5 flex gap-2 overflow-x-auto px-4 pb-1 sm:-mx-6 sm:px-6 md:mx-0 md:flex-wrap md:overflow-visible md:px-0">
+              <button type="button" class="inline-flex min-h-11 shrink-0 items-center rounded-full border border-line bg-white px-4 text-sm font-bold text-muted transition-colors hover:border-xl-blue aria-pressed:border-xl-blue aria-pressed:bg-xl-blue aria-pressed:text-white" aria-pressed="false" data-filter="use" data-value="coding" data-i18n="use_coding">Coding</button>
+              <button type="button" class="inline-flex min-h-11 shrink-0 items-center rounded-full border border-line bg-white px-4 text-sm font-bold text-muted transition-colors hover:border-xl-blue aria-pressed:border-xl-blue aria-pressed:bg-xl-blue aria-pressed:text-white" aria-pressed="false" data-filter="use" data-value="chat" data-i18n="use_chat">Chat & menulis</button>
+              <button type="button" class="inline-flex min-h-11 shrink-0 items-center rounded-full border border-line bg-white px-4 text-sm font-bold text-muted transition-colors hover:border-xl-blue aria-pressed:border-xl-blue aria-pressed:bg-xl-blue aria-pressed:text-white" aria-pressed="false" data-filter="use" data-value="analysis" data-i18n="use_analysis">Analisis dokumen</button>
+            </div>
+          </div>
+          <div role="group" aria-labelledby="flt-tier" class="min-w-0">
+            <p id="flt-tier" class="text-[11px] font-extrabold uppercase tracking-[0.08em] text-muted" data-i18n="filterTier">Level biaya</p>
+            <div class="-mx-4 mt-1.5 flex gap-2 overflow-x-auto px-4 pb-1 sm:-mx-6 sm:px-6 md:mx-0 md:flex-wrap md:overflow-visible md:px-0">
+              <button type="button" class="inline-flex min-h-11 shrink-0 items-center rounded-full border border-line bg-white px-4 text-sm font-bold text-muted transition-colors hover:border-xl-blue aria-pressed:border-xl-blue aria-pressed:bg-xl-blue aria-pressed:text-white" aria-pressed="false" data-filter="tier" data-value="hemat" data-i18n="tier_hemat">Hemat</button>
+              <button type="button" class="inline-flex min-h-11 shrink-0 items-center rounded-full border border-line bg-white px-4 text-sm font-bold text-muted transition-colors hover:border-xl-blue aria-pressed:border-xl-blue aria-pressed:bg-xl-blue aria-pressed:text-white" aria-pressed="false" data-filter="tier" data-value="seimbang" data-i18n="tier_seimbang">Seimbang</button>
+              <button type="button" class="inline-flex min-h-11 shrink-0 items-center rounded-full border border-line bg-white px-4 text-sm font-bold text-muted transition-colors hover:border-xl-blue aria-pressed:border-xl-blue aria-pressed:bg-xl-blue aria-pressed:text-white" aria-pressed="false" data-filter="tier" data-value="premium" data-i18n="tier_premium">Premium</button>
+            </div>
+          </div>
+          <div role="group" aria-labelledby="flt-provider" class="min-w-0 md:col-span-2">
+            <p id="flt-provider" class="text-[11px] font-extrabold uppercase tracking-[0.08em] text-muted" data-i18n="filterProvider">Penyedia</p>
+            <div class="-mx-4 mt-1.5 flex gap-2 overflow-x-auto px-4 pb-1 sm:-mx-6 sm:px-6 md:mx-0 md:flex-wrap md:overflow-visible md:px-0">
+              <button type="button" class="inline-flex min-h-11 shrink-0 items-center rounded-full border border-line bg-white px-4 text-sm font-bold text-muted transition-colors hover:border-xl-blue aria-pressed:border-xl-blue aria-pressed:bg-xl-blue aria-pressed:text-white" aria-pressed="false" data-filter="provider" data-value="Anthropic">Anthropic</button>
+              <button type="button" class="inline-flex min-h-11 shrink-0 items-center rounded-full border border-line bg-white px-4 text-sm font-bold text-muted transition-colors hover:border-xl-blue aria-pressed:border-xl-blue aria-pressed:bg-xl-blue aria-pressed:text-white" aria-pressed="false" data-filter="provider" data-value="OpenAI">OpenAI</button>
+              <button type="button" class="inline-flex min-h-11 shrink-0 items-center rounded-full border border-line bg-white px-4 text-sm font-bold text-muted transition-colors hover:border-xl-blue aria-pressed:border-xl-blue aria-pressed:bg-xl-blue aria-pressed:text-white" aria-pressed="false" data-filter="provider" data-value="Google">Google</button>
+              <button type="button" class="inline-flex min-h-11 shrink-0 items-center rounded-full border border-line bg-white px-4 text-sm font-bold text-muted transition-colors hover:border-xl-blue aria-pressed:border-xl-blue aria-pressed:bg-xl-blue aria-pressed:text-white" aria-pressed="false" data-filter="provider" data-value="DeepSeek">DeepSeek</button>
+              <button type="button" class="inline-flex min-h-11 shrink-0 items-center rounded-full border border-line bg-white px-4 text-sm font-bold text-muted transition-colors hover:border-xl-blue aria-pressed:border-xl-blue aria-pressed:bg-xl-blue aria-pressed:text-white" aria-pressed="false" data-filter="provider" data-value="Alibaba">Alibaba</button>
+            </div>
+          </div>
+      </div>
+    </div>
+
+    <div class="relative min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 py-4 sm:px-6">
+      <p class="text-sm font-bold text-muted" aria-live="polite" data-cat-count></p>
+      <ul class="mt-3 grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-3" aria-labelledby="cat-title" data-cat-list></ul>
+
+      <div class="mt-6 hidden flex-col items-center gap-3 rounded-card border border-dashed border-line bg-white px-4 py-8 text-center data-[show=true]:flex" data-cat-empty data-show="false">
+        <p class="text-sm font-semibold text-muted" data-i18n="catEmpty">Model tidak ditemukan. Coba kata kunci atau filter lain.</p>
+        <button type="button" class="btn btn-secondary" data-cat-clear data-i18n="catClear">Hapus filter</button>
+      </div>
+
+      <div class="mt-4 flex justify-center">
+        <button type="button" class="btn btn-secondary hidden data-[show=true]:inline-flex" data-cat-more data-show="false" data-i18n="catMore">Tampilkan lebih banyak</button>
+      </div>
+
+      <p class="mt-6 pb-[env(safe-area-inset-bottom)] text-xs leading-relaxed text-muted" data-i18n="modelsNote">1 sesi kecil ≈ satu permintaan perbaikan komponen di tool coding (±40 rb token masuk, ±4 rb token keluar). Contoh — daftar dan tarif dapat berubah.</p>
+    </div>
+  </dialog>
+
+  <!-- ============ 9b. KONSULTASI TIM (dialog) ============
+       Mobile: bottom sheet. md+: centered dialog. 5 fields + 2 checkboxes, no captcha (spec → Form Konsultasi Tim). -->
+  <dialog data-lenis-prevent id="consult" aria-labelledby="cs-title"
+          class="m-0 mt-auto w-full max-w-none max-h-[90dvh] flex-col overflow-hidden rounded-t-3xl bg-white p-0 text-ink shadow-2xl
+                 backdrop:bg-xl-dark/55 open:flex open:animate-sheet-in motion-reduce:open:animate-none
+                 md:m-auto md:max-h-[85dvh] md:max-w-[40rem] md:rounded-card md:open:animate-dialog-in"
+          data-step="form">
+    <div class="relative shrink-0 border-b border-line px-4 pb-3 pt-2 sm:px-6 md:pt-4">
+      <div aria-hidden="true" class="mx-auto mb-2 h-1.5 w-10 rounded-full bg-line md:hidden"></div>
+      <div class="flex items-start gap-3">
+        <div class="min-w-0 flex-1">
+          <h2 id="cs-title" tabindex="-1" class="text-lg font-extrabold text-xl-dark outline-none" data-i18n="csTitle">Konsultasi untuk tim</h2>
+          <p class="mt-0.5 text-sm text-muted" data-i18n="csIntro">Ceritakan kebutuhan timmu. Kami hubungi dalam 1 hari kerja.</p>
+        </div>
+        <button type="button" class="grid size-11 shrink-0 place-items-center rounded-control text-muted hover:bg-paper hover:text-ink"
+                aria-label="Tutup konsultasi" data-i18n-aria="csClose" data-cs-close>
+          <svg aria-hidden="true" class="size-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>
+        </button>
+      </div>
+    </div>
+
+    <form data-cs-panel="form" class="flex min-h-0 flex-1 flex-col" novalidate>
+      <div class="relative min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 py-5 sm:px-6">
+        <div class="grid grid-cols-1 gap-5 md:grid-cols-2">
+          <div>
+            <label for="cs-name" class="block text-sm font-extrabold text-xl-dark" data-i18n="csName">Nama</label>
+            <input id="cs-name" name="name" type="text" autocomplete="name" required aria-describedby="cs-name-error" class="mt-2 block min-h-12 w-full rounded-control border-2 border-line bg-white px-3 text-base text-ink placeholder:text-muted/70 focus:border-xl-blue focus:outline-none aria-invalid:border-red-600">
+            <p id="cs-name-error" class="mt-1.5 hidden text-sm font-semibold text-red-700" data-cerr="name"></p>
+          </div>
+          <div>
+            <label for="cs-org" class="block text-sm font-extrabold text-xl-dark" data-i18n="csOrg">Nama tim atau perusahaan</label>
+            <input id="cs-org" name="org" type="text" autocomplete="organization" required aria-describedby="cs-org-error" class="mt-2 block min-h-12 w-full rounded-control border-2 border-line bg-white px-3 text-base text-ink placeholder:text-muted/70 focus:border-xl-blue focus:outline-none aria-invalid:border-red-600">
+            <p id="cs-org-error" class="mt-1.5 hidden text-sm font-semibold text-red-700" data-cerr="org"></p>
+          </div>
+          <div class="md:col-span-2">
+            <label for="cs-contact" class="block text-sm font-extrabold text-xl-dark" data-i18n="coContactLabel">Email atau nomor HP</label>
+            <input id="cs-contact" name="contact" type="text" inputmode="email" autocomplete="email" required aria-describedby="cs-contact-error"
+                   class="mt-2 block min-h-12 w-full rounded-control border-2 border-line bg-white px-3 text-base text-ink placeholder:text-muted/70 focus:border-xl-blue focus:outline-none aria-invalid:border-red-600" placeholder="nama@email.com atau 0812xxxxxxxx" data-i18n-placeholder="coContactPlaceholder">
+            <p id="cs-contact-error" class="mt-1.5 hidden text-sm font-semibold text-red-700" data-cerr="contact"></p>
+          </div>
+        </div>
+
+        <fieldset class="mt-5">
+          <legend class="text-sm font-extrabold text-xl-dark" data-i18n="csSize">Ukuran tim</legend>
+          <div class="mt-2 grid grid-cols-4 gap-2">
+              <label class="group/opt relative flex min-h-11 cursor-pointer items-center justify-center rounded-control border-2 border-line bg-white px-3 text-sm font-extrabold text-xl-dark transition-colors hover:border-xl-blue/50 has-[:checked]:border-xl-blue has-[:checked]:bg-xl-blue has-[:checked]:text-white has-[:focus-visible]:outline-3 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-xl-sky"><input type="radio" name="teamSize" value="1–5" class="sr-only" aria-describedby="cs-teamSize-error">1–5</label>
+              <label class="group/opt relative flex min-h-11 cursor-pointer items-center justify-center rounded-control border-2 border-line bg-white px-3 text-sm font-extrabold text-xl-dark transition-colors hover:border-xl-blue/50 has-[:checked]:border-xl-blue has-[:checked]:bg-xl-blue has-[:checked]:text-white has-[:focus-visible]:outline-3 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-xl-sky"><input type="radio" name="teamSize" value="6–20" class="sr-only" aria-describedby="cs-teamSize-error">6–20</label>
+              <label class="group/opt relative flex min-h-11 cursor-pointer items-center justify-center rounded-control border-2 border-line bg-white px-3 text-sm font-extrabold text-xl-dark transition-colors hover:border-xl-blue/50 has-[:checked]:border-xl-blue has-[:checked]:bg-xl-blue has-[:checked]:text-white has-[:focus-visible]:outline-3 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-xl-sky"><input type="radio" name="teamSize" value="21–50" class="sr-only" aria-describedby="cs-teamSize-error">21–50</label>
+              <label class="group/opt relative flex min-h-11 cursor-pointer items-center justify-center rounded-control border-2 border-line bg-white px-3 text-sm font-extrabold text-xl-dark transition-colors hover:border-xl-blue/50 has-[:checked]:border-xl-blue has-[:checked]:bg-xl-blue has-[:checked]:text-white has-[:focus-visible]:outline-3 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-xl-sky"><input type="radio" name="teamSize" value="50+" class="sr-only" aria-describedby="cs-teamSize-error">50+</label>
+          </div>
+          <p id="cs-teamSize-error" class="mt-1.5 hidden text-sm font-semibold text-red-700" data-cerr="teamSize"></p>
+        </fieldset>
+
+        <div class="mt-5">
+          <label for="cs-need" class="block text-sm font-extrabold text-xl-dark" data-i18n="csNeed">Ceritakan kebutuhanmu (opsional)</label>
+          <textarea id="cs-need" name="need" rows="3" maxlength="500" aria-describedby="cs-need-count"
+                    class="mt-2 block w-full resize-y rounded-control border-2 border-line bg-white px-3 py-2.5 text-base text-ink focus:border-xl-blue focus:outline-none"></textarea>
+          <p id="cs-need-count" class="mt-1 text-right font-mono text-xs text-muted" aria-hidden="true" data-cs-count>0/500</p>
+          <p class="sr-only" aria-live="polite" data-cs-count-live></p>
+        </div>
+
+        <div class="mt-4 space-y-1">
+          <label class="flex min-h-11 cursor-pointer items-start gap-3 py-2 text-sm text-ink">
+            <input type="checkbox" name="invoice" class="mt-0.5 size-5 shrink-0 accent-xl-blue">
+            <span data-i18n="csInvoice">Butuh invoice perusahaan / faktur pajak</span>
+          </label>
+          <label class="flex min-h-11 cursor-pointer items-start gap-3 py-2 text-sm text-ink">
+            <input type="checkbox" name="consent" required class="mt-0.5 size-5 shrink-0 accent-xl-blue" aria-describedby="cs-consent-error">
+            <span data-i18n="csConsent">Saya setuju dengan Syarat & Ketentuan dan Kebijakan Privasi</span>
+          </label>
+          <p id="cs-consent-error" class="mt-1.5 hidden text-sm font-semibold text-red-700" data-cerr="consent"></p>
+        </div>
+      </div>
+      <div class="shrink-0 border-t border-line bg-white px-4 pt-3 pb-[max(1rem,env(safe-area-inset-bottom))] sm:px-6">
+        <button type="submit" class="btn btn-primary min-h-12 w-full text-base" data-i18n="csSubmit">Kirim</button>
+      </div>
+    </form>
+
+    <section data-cs-panel="success" hidden class="flex min-h-0 flex-1 flex-col" aria-labelledby="cs-success-title">
+      <div class="relative min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 py-5 sm:px-6 text-center">
+        <span aria-hidden="true" class="mx-auto grid size-16 place-items-center rounded-full bg-xl-teal text-3xl font-extrabold text-xl-dark animate-pop-in motion-reduce:animate-none">✓</span>
+        <h3 id="cs-success-title" tabindex="-1" class="mt-4 text-2xl font-extrabold text-xl-dark outline-none" data-i18n="csSuccessTitle">Terima kasih!</h3>
+        <p class="mt-2 text-sm leading-relaxed text-muted" data-cs-success-body></p>
+        <p class="mt-4 text-xs font-semibold text-muted" data-i18n="csSuccessNotice">Simulasi — tidak ada data yang dikirim.</p>
+      </div>
+      <div class="shrink-0 border-t border-line bg-white px-4 pt-3 pb-[max(1rem,env(safe-area-inset-bottom))] sm:px-6">
+        <button type="button" class="btn btn-secondary min-h-12 w-full" data-cs-close data-i18n="csDone">Selesai</button>
+      </div>
+    </section>
+  </dialog>
+
+  <!-- ============ 11. LIVE CHAT NALA ============
+       Scripted, local only — no AI, no server. Mobile: full screen + modal (showModal). md+: 380×560 panel, non-modal (show).
+       Messages are stored as copy keys so the whole log re-translates on language change. -->
+  <dialog data-lenis-prevent id="chat" aria-labelledby="chat-title"
+          class="fixed inset-0 m-0 h-dvh max-h-none w-full max-w-none flex-col overflow-hidden bg-white p-0 text-ink
+                 open:flex open:animate-dialog-in motion-reduce:open:animate-none
+                 md:inset-auto md:bottom-[calc(1rem+env(safe-area-inset-bottom))] md:right-4 md:z-40 md:h-[560px] md:max-h-[calc(100dvh-2rem)] md:w-[380px]
+                 md:rounded-card md:border md:border-line md:shadow-[0_24px_60px_rgba(0,22,106,.22)]">
+    <div class="flex shrink-0 items-center gap-3 border-b border-line bg-xl-dark px-4 py-3 text-white">
+      <img src="assets/tokennyala-mark.svg" alt="" width="40" height="40" class="size-10 rounded-full" data-chat-avatar>
+      <div class="min-w-0 flex-1">
+        <h2 id="chat-title" class="text-base font-extrabold" data-chat-title>Nala</h2>
+        <p class="truncate text-xs text-white/75" data-chat-status>Asisten otomatis</p>
+      </div>
+      <button type="button" class="grid size-11 shrink-0 place-items-center rounded-control text-white/80 hover:bg-white/10 hover:text-white"
+              aria-label="Mulai ulang percakapan" data-i18n-aria="chatRestart" data-chat-restart>
+        <svg aria-hidden="true" class="size-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12a8 8 0 1 0 2.3-5.6"/><path d="M4 4v4h4"/></svg>
+      </button>
+      <button type="button" class="grid size-11 shrink-0 place-items-center rounded-control text-white/80 hover:bg-white/10 hover:text-white"
+              aria-label="Tutup chat" data-i18n-aria="chatClose" data-chat-close>
+        <svg aria-hidden="true" class="size-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>
+      </button>
+    </div>
+    <p class="hidden shrink-0 bg-xl-yellow/25 px-4 py-1.5 text-center text-xs font-bold text-xl-dark data-[show=true]:block" data-chat-mode-label data-show="false"></p>
+
+    <div class="relative min-h-0 flex-1 space-y-3 overflow-y-auto overscroll-contain bg-paper px-4 py-4" role="log" aria-live="polite"
+         aria-label="Percakapan" data-i18n-aria="chatLogAria" data-chat-log></div>
+
+    <div class="shrink-0 border-t border-line bg-white px-3 pt-2.5 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
+      <div class="-mx-3 flex gap-2 overflow-x-auto px-3 pb-2.5 empty:hidden md:flex-wrap md:overflow-visible" data-chat-chips></div>
+      <form class="flex items-center gap-2" data-chat-form novalidate>
+        <label for="chat-input" class="sr-only" data-chat-input-label>Pesan</label>
+        <input id="chat-input" type="text" autocomplete="off" enterkeyhint="send"
+               class="block min-h-11 min-w-0 flex-1 rounded-control border-2 border-line bg-white px-3 text-base placeholder:text-muted/70 focus:border-xl-blue focus:outline-none"
+               placeholder="Tulis pertanyaanmu…">
+        <button type="submit" class="grid size-11 shrink-0 place-items-center rounded-control bg-xl-blue text-white hover:bg-xl-blue-hover"
+                aria-label="Kirim pesan" data-i18n-aria="chatSend">
+          <svg aria-hidden="true" class="size-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+        </button>
+      </form>
+      <p class="mt-2 text-[11px] leading-snug text-muted" data-i18n="chatDisclaimer">Nala adalah asisten otomatis (simulasi). Jawaban bisa kurang tepat.</p>
+    </div>
+  </dialog>
+
+  <!-- ============ 5. CHECKOUT (dialog) ============
+       Mobile: bottom sheet. md+: centered dialog. Steps: form → pay → success | failed. -->
+  <dialog data-lenis-prevent id="checkout" aria-labelledby="co-title"
+          class="m-0 mt-auto w-full max-w-none max-h-[90dvh] flex-col overflow-hidden rounded-t-3xl bg-white p-0 text-ink shadow-2xl
+                 backdrop:bg-xl-dark/55 open:flex open:animate-sheet-in motion-reduce:open:animate-none
+                 md:m-auto md:max-h-[85dvh] md:max-w-[34rem] md:rounded-card md:open:animate-dialog-in"
+          data-step="form">
+    <div class="relative shrink-0 border-b border-line px-4 pb-3 pt-2 sm:px-6 md:pt-4">
+      <div aria-hidden="true" class="mx-auto mb-2 h-1.5 w-10 rounded-full bg-line md:hidden"></div>
+      <div class="flex items-center gap-3">
+        <h2 id="co-title" tabindex="-1" class="text-lg font-extrabold text-xl-dark outline-none" data-co-title>Ringkas top up</h2>
+        <button type="button" class="ml-auto grid size-11 shrink-0 place-items-center rounded-control text-muted hover:bg-paper hover:text-ink"
+                aria-label="Tutup checkout" data-i18n-aria="coClose" data-co-close>
+          <svg aria-hidden="true" class="size-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- Step 1: form -->
+    <form data-step-panel="form" class="flex min-h-0 flex-1 flex-col" novalidate>
+      <div class="relative min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 py-5 sm:px-6">
+        <fieldset>
+          <legend class="text-sm font-extrabold text-xl-dark" data-i18n="coPackageLegend">Paket</legend>
+          <div class="mt-2 grid grid-cols-3 gap-2">
+              <label class="group/opt relative flex min-h-11 cursor-pointer items-center gap-3 rounded-control border-2 border-line bg-white px-3 py-2.5 transition-colors hover:border-xl-blue/50 has-[:checked]:border-xl-blue has-[:checked]:bg-xl-blue/5 has-[:focus-visible]:outline-3 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-xl-sky flex-col items-start gap-0.5 sm:flex-1">
+                <input type="radio" name="co-package" value="learn" class="sr-only">
+                <span class="text-xs font-extrabold uppercase tracking-[0.08em] text-xl-blue">Mulai</span>
+                <span class="text-sm font-extrabold text-xl-dark sm:hidden" data-price-short="50000">Rp50rb</span><span class="hidden text-base font-extrabold text-xl-dark sm:inline" data-price="50000">Rp50.000</span>
+              </label>
+              <label class="group/opt relative flex min-h-11 cursor-pointer items-center gap-3 rounded-control border-2 border-line bg-white px-3 py-2.5 transition-colors hover:border-xl-blue/50 has-[:checked]:border-xl-blue has-[:checked]:bg-xl-blue/5 has-[:focus-visible]:outline-3 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-xl-sky flex-col items-start gap-0.5 sm:flex-1">
+                <input type="radio" name="co-package" value="prototype" class="sr-only">
+                <span class="text-xs font-extrabold uppercase tracking-[0.08em] text-xl-blue">Bangun</span>
+                <span class="text-sm font-extrabold text-xl-dark sm:hidden" data-price-short="100000">Rp100rb</span><span class="hidden text-base font-extrabold text-xl-dark sm:inline" data-price="100000">Rp100.000</span>
+              </label>
+              <label class="group/opt relative flex min-h-11 cursor-pointer items-center gap-3 rounded-control border-2 border-line bg-white px-3 py-2.5 transition-colors hover:border-xl-blue/50 has-[:checked]:border-xl-blue has-[:checked]:bg-xl-blue/5 has-[:focus-visible]:outline-3 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-xl-sky flex-col items-start gap-0.5 sm:flex-1">
+                <input type="radio" name="co-package" value="work" class="sr-only">
+                <span class="text-xs font-extrabold uppercase tracking-[0.08em] text-xl-blue">Scale</span>
+                <span class="text-sm font-extrabold text-xl-dark sm:hidden" data-price-short="250000">Rp250rb</span><span class="hidden text-base font-extrabold text-xl-dark sm:inline" data-price="250000">Rp250.000</span>
+              </label>
+          </div>
+        </fieldset>
+
+        <dl class="mt-4 rounded-control bg-paper px-4 py-2 text-sm" aria-label="Rincian biaya" data-i18n-aria="coBreakdownAria">
+                <div class="flex items-center justify-between gap-4 py-1.5">
+                  <dt class="text-muted" data-i18n="coNominal">Nominal paket</dt>
+                  <dd class="font-mono font-semibold text-xl-dark" data-co-nominal>Rp0</dd>
+                </div>
+                <div class="flex items-center justify-between gap-4 py-1.5">
+                  <dt class="text-muted" data-i18n="coBonus">Bonus kredit</dt>
+                  <dd class="font-mono font-semibold text-xl-dark" data-co-bonus>Rp0</dd>
+                </div>
+                <div class="flex items-center justify-between gap-4 py-1.5">
+                  <dt class="text-muted" data-i18n="coFee">Biaya tambahan</dt>
+                  <dd class="font-mono font-semibold text-xl-dark" data-price="0">Rp0</dd>
+                </div>
+                <div class="mt-1 flex items-center justify-between gap-4 border-t border-line pt-2.5 pb-1">
+                  <dt class="font-extrabold text-xl-dark" data-i18n="coTotal">Total bayar</dt>
+                  <dd class="font-mono text-lg font-semibold text-xl-dark" data-co-total>Rp0</dd>
+                </div>
+        </dl>
+        <p class="mt-2 text-xs text-muted" data-co-credit-note></p>
+
+        <div class="mt-6">
+          <label for="co-contact" class="block text-sm font-extrabold text-xl-dark" data-i18n="coContactLabel">Email atau nomor HP</label>
+          <p id="co-contact-help" class="mt-0.5 text-xs text-muted" data-i18n="coContactHelp">Bukti pembelian dikirim ke sini.</p>
+          <input id="co-contact" name="contact" type="text" inputmode="email" autocomplete="email" required
+                 aria-describedby="co-contact-help co-contact-error"
+                 class="mt-2 block min-h-12 w-full rounded-control border-2 border-line bg-white px-3 text-base text-ink placeholder:text-muted/70
+                        focus:border-xl-blue focus:outline-none aria-invalid:border-red-600"
+                 placeholder="nama@email.com atau 0812xxxxxxxx" data-i18n-placeholder="coContactPlaceholder">
+          <p id="co-contact-error" class="mt-1.5 hidden text-sm font-semibold text-red-700" data-error-for="contact"></p>
+        </div>
+
+        <fieldset class="mt-6">
+          <legend class="text-sm font-extrabold text-xl-dark" data-i18n="coMethodLegend">Pilih metode pembayaran</legend>
+          <div class="mt-2 grid grid-cols-1 gap-2 sm:grid-cols-2">
+              <label class="group/opt relative flex min-h-11 cursor-pointer items-center gap-3 rounded-control border-2 border-line bg-white px-3 py-2.5 transition-colors hover:border-xl-blue/50 has-[:checked]:border-xl-blue has-[:checked]:bg-xl-blue/5 has-[:focus-visible]:outline-3 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-xl-sky">
+                <input type="radio" name="co-method" value="qris" class="sr-only" aria-describedby="co-method-error">
+                <span aria-hidden="true" class="grid size-5 shrink-0 place-items-center rounded-full border-2 border-line bg-white group-has-[:checked]/opt:border-xl-blue"><span class="size-2.5 scale-0 rounded-full bg-xl-blue transition-transform group-has-[:checked]/opt:scale-100"></span></span>
+                <span class="min-w-0">
+                  <span class="block text-sm font-extrabold text-xl-dark">QRIS</span>
+                  <span class="block text-xs text-muted" data-i18n="methodQrisHint">Pindai dari aplikasi bank atau e-wallet</span>
+                </span>
+              </label>
+              <label class="group/opt relative flex min-h-11 cursor-pointer items-center gap-3 rounded-control border-2 border-line bg-white px-3 py-2.5 transition-colors hover:border-xl-blue/50 has-[:checked]:border-xl-blue has-[:checked]:bg-xl-blue/5 has-[:focus-visible]:outline-3 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-xl-sky">
+                <input type="radio" name="co-method" value="ewallet" class="sr-only" aria-describedby="co-method-error">
+                <span aria-hidden="true" class="grid size-5 shrink-0 place-items-center rounded-full border-2 border-line bg-white group-has-[:checked]/opt:border-xl-blue"><span class="size-2.5 scale-0 rounded-full bg-xl-blue transition-transform group-has-[:checked]/opt:scale-100"></span></span>
+                <span class="min-w-0">
+                  <span class="block text-sm font-extrabold text-xl-dark">E-Wallet</span>
+                  <span class="block text-xs text-muted" data-i18n="methodEwalletHint">DANA, GoPay, OVO</span>
+                </span>
+              </label>
+              <label class="group/opt relative flex min-h-11 cursor-pointer items-center gap-3 rounded-control border-2 border-line bg-white px-3 py-2.5 transition-colors hover:border-xl-blue/50 has-[:checked]:border-xl-blue has-[:checked]:bg-xl-blue/5 has-[:focus-visible]:outline-3 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-xl-sky">
+                <input type="radio" name="co-method" value="va" class="sr-only" aria-describedby="co-method-error">
+                <span aria-hidden="true" class="grid size-5 shrink-0 place-items-center rounded-full border-2 border-line bg-white group-has-[:checked]/opt:border-xl-blue"><span class="size-2.5 scale-0 rounded-full bg-xl-blue transition-transform group-has-[:checked]/opt:scale-100"></span></span>
+                <span class="min-w-0">
+                  <span class="block text-sm font-extrabold text-xl-dark">Virtual Account</span>
+                  <span class="block text-xs text-muted" data-i18n="methodVaHint">Transfer dari bank mana pun</span>
+                </span>
+              </label>
+          </div>
+          <p id="co-method-error" class="mt-1.5 hidden text-sm font-semibold text-red-700" data-error-for="method"></p>
+        </fieldset>
+
+        <button type="button" class="mt-5 inline-flex min-h-11 items-center gap-1.5 text-sm font-extrabold text-xl-blue hover:underline" data-open-chat>
+          <svg aria-hidden="true" class="size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h16v10H8l-4 4z"/></svg>
+          <span data-i18n="chatLauncher">Butuh bantuan?</span>
+        </button>
+        <p class="mt-3 rounded-control border border-dashed border-line px-3 py-2 text-xs leading-relaxed text-muted" data-i18n="coNotice">
+          Ini adalah checkout simulasi. Tidak ada transaksi atau penarikan dana nyata.
+        </p>
+      </div>
+      <div class="shrink-0 border-t border-line bg-white px-4 pt-3 pb-[max(1rem,env(safe-area-inset-bottom))] sm:px-6">
+        <button type="submit" class="btn btn-primary min-h-12 w-full text-base" data-co-submit>Lanjut bayar</button>
+      </div>
+    </form>
+
+    <!-- Step 2: pay (method-specific mock) -->
+    <section data-step-panel="pay" hidden class="flex min-h-0 flex-1 flex-col" aria-labelledby="co-pay-title">
+      <div class="relative min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 py-5 sm:px-6">
+        <h3 id="co-pay-title" class="text-xl font-extrabold text-xl-dark" data-co-pay-title></h3>
+        <p class="mt-1 text-sm leading-relaxed text-muted" data-co-pay-body></p>
+        <p class="mt-4 flex items-center gap-2 rounded-control bg-xl-yellow/20 px-3 py-2 text-sm font-bold text-xl-dark" role="status">
+          <span aria-hidden="true" class="size-2 animate-pulse rounded-full bg-xl-yellow motion-reduce:animate-none"></span>
+          <span data-co-waiting></span>
+        </p>
+
+        <div data-pay-method="qris" hidden class="mt-5 flex flex-col items-center">
+          <div class="rounded-card border border-line bg-white p-4">
+            <svg data-co-qr class="size-48" viewBox="0 0 25 25" role="img" aria-label="Kode QR contoh, tidak bisa dipindai" data-i18n-aria="coQrAria" shape-rendering="crispEdges"></svg>
+          </div>
+        </div>
+
+        <div data-pay-method="va" hidden class="mt-5 rounded-control bg-paper p-4">
+          <p class="text-xs font-bold uppercase tracking-[0.08em] text-muted" data-i18n="coVaLabel">Nomor virtual account</p>
+          <div class="mt-1 flex flex-wrap items-center justify-between gap-2">
+            <p class="font-mono text-xl font-semibold tracking-wider text-xl-dark" data-co-va></p>
+            <button type="button" class="btn btn-secondary" data-copy-target="[data-co-va]" data-i18n="coCopy">Salin</button>
+          </div>
+        </div>
+
+        <div data-pay-method="ewallet" hidden class="mt-5 grid grid-cols-1 gap-2 sm:grid-cols-3">
+          <button type="button" class="btn btn-secondary min-h-12" data-co-paid data-ewallet="DANA">DANA</button>
+          <button type="button" class="btn btn-secondary min-h-12" data-co-paid data-ewallet="GoPay">GoPay</button>
+          <button type="button" class="btn btn-secondary min-h-12" data-co-paid data-ewallet="OVO">OVO</button>
+        </div>
+
+        <div class="mt-6 flex flex-wrap items-center justify-between gap-x-4">
+          <button type="button" class="inline-flex min-h-11 items-center text-sm font-extrabold text-xl-blue hover:underline" data-co-back data-i18n="coBack">Ubah data</button>
+          <button type="button" class="inline-flex min-h-11 items-center text-sm font-semibold text-muted underline-offset-4 hover:underline" data-co-fail data-i18n="coSimFail">Simulasikan pembayaran gagal</button>
+        </div>
+      </div>
+      <div class="shrink-0 border-t border-line bg-white px-4 pt-3 pb-[max(1rem,env(safe-area-inset-bottom))] sm:px-6" data-pay-footer>
+        <button type="button" class="btn btn-primary min-h-12 w-full text-base" data-co-paid data-i18n="coPaid">Saya sudah bayar</button>
+      </div>
+    </section>
+
+    <!-- Step 3a: success -->
+    <section data-step-panel="success" hidden class="flex min-h-0 flex-1 flex-col" aria-labelledby="co-success-title">
+      <div class="relative min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 py-5 sm:px-6">
+        <div class="flex flex-col items-center text-center">
+          <span aria-hidden="true" class="grid size-16 place-items-center rounded-full bg-xl-teal text-3xl font-extrabold text-xl-dark animate-pop-in motion-reduce:animate-none">✓</span>
+          <h3 id="co-success-title" tabindex="-1" class="mt-4 text-2xl font-extrabold text-xl-dark outline-none" data-i18n="successTitle">Saldo nyala!</h3>
+          <p class="mt-2 text-sm leading-relaxed text-muted" data-co-success-body></p>
+        </div>
+
+        <div class="mt-6 rounded-control border border-line bg-paper p-4">
+          <p class="text-xs font-bold uppercase tracking-[0.08em] text-muted" data-i18n="successKeyLabel">API key kamu</p>
+          <p class="mt-1 break-all font-mono text-base font-semibold text-xl-dark" data-co-key></p>
+          <p class="mt-2 text-xs text-muted" data-i18n="successWarning">Simpan API key seperti kata sandi. Jangan dibagikan.</p>
+        </div>
+        <p class="mt-4 text-center text-xs font-semibold text-muted" data-i18n="successNotice">Prototype — tidak ada transaksi nyata.</p>
+      </div>
+      <div class="shrink-0 border-t border-line bg-white px-4 pt-3 pb-[max(1rem,env(safe-area-inset-bottom))] sm:px-6 grid grid-cols-1 gap-2 sm:grid-cols-2">
+        <button type="button" class="btn btn-primary min-h-12" data-copy-key data-i18n="successCopyKey">Salin API key</button>
+        <a href="#pakai" class="btn btn-secondary min-h-12" data-co-guide data-i18n="successGuide">Lihat panduan pasang</a>
+      </div>
+    </section>
+
+    <!-- Step 3b: failed -->
+    <section data-step-panel="failed" hidden class="flex min-h-0 flex-1 flex-col" aria-labelledby="co-failed-title">
+      <div class="relative min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 py-5 sm:px-6 text-center">
+        <span aria-hidden="true" class="mx-auto grid size-16 place-items-center rounded-full bg-red-100 text-3xl font-extrabold text-red-700">!</span>
+        <h3 id="co-failed-title" tabindex="-1" class="mt-4 text-2xl font-extrabold text-xl-dark outline-none" data-i18n="failTitle">Pembayaran belum berhasil</h3>
+        <p class="mt-2 text-sm leading-relaxed text-muted" data-i18n="failBody">Tidak ada saldo yang terpotong pada prototipe ini. Pilih metode lain atau coba lagi.</p>
+      </div>
+      <div class="shrink-0 border-t border-line bg-white px-4 pt-3 pb-[max(1rem,env(safe-area-inset-bottom))] sm:px-6">
+        <button type="button" class="btn btn-primary min-h-12 w-full" data-co-back data-i18n="failRetry">Coba lagi</button>
+      </div>
+    </section>
+
+    <p class="sr-only" aria-live="polite" data-co-live></p>
+  </dialog>
+
+  <button type="button" id="chat-launcher" aria-expanded="false" aria-controls="chat" data-open-chat
+          class="fixed bottom-[calc(1rem+env(safe-area-inset-bottom))] right-4 z-40 inline-flex min-h-13 items-center gap-2 rounded-full bg-xl-dark py-1.5 pl-1.5 pr-1.5 text-sm font-extrabold text-white shadow-[0_12px_32px_rgba(0,22,106,.35)]
+                 hover:-translate-y-0.5 motion-reduce:transition-none sm:pr-5
+                 data-[offscreen=true]:pointer-events-none data-[offscreen=true]:translate-y-24 data-[offscreen=true]:opacity-0 transition-[transform,opacity] duration-300
+                 aria-expanded:hidden [body:has(dialog:modal)_&]:hidden">
+    <span class="relative shrink-0" data-decor-overflow>
+      <img src="assets/tokennyala-mark.svg" alt="" width="40" height="40" class="size-10 rounded-full">
+      <span aria-hidden="true" class="absolute -right-0.5 -top-0.5 size-3.5 rounded-full bg-xl-teal ring-2 ring-xl-dark"></span>
+    </span>
+    <span class="sr-only sm:not-sr-only" data-i18n="chatLauncher">Butuh bantuan?</span>
+  </button>
+
+  <!-- Motion: GSAP 3.12.5 + ScrollTrigger + Lenis 1.1.13, vendored so motion works offline. -->
+  <script src="assets/vendor/gsap.min.js"></script>
+  <script src="assets/vendor/ScrollTrigger.min.js"></script>
+  <script src="assets/vendor/lenis.min.js"></script>
+  <script src="script.js"></script>
+  <script src="motion.js"></script>
+</body>
+</html>

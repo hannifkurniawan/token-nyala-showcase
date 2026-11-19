@@ -1,0 +1,32 @@
+/*
+  TokenNyala v3 — custom CSS.
+  Only for illustrations, keyframes, and things utilities cannot express.
+  Layout, spacing, color, and state live in Tailwind classes (docs/v3-ground-rules.md, rule 4).
+  Never use max-width media queries here.
+*/
+
+html { scroll-behavior: smooth; }
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* ---------- Motion (motion.js) ---------- */
+
+/* Hero intro is hidden only while motion.js is about to animate it (gate + failsafe in <head>). */
+.motion-ok:not(.motion-ready) [data-intro] { visibility: hidden; }
+
+/* Lenis smooth scroll (from lenis/dist/lenis.css) */
+html.lenis, html.lenis body { height: auto; }
+.lenis.lenis-smooth { scroll-behavior: auto !important; }
+.lenis.lenis-smooth [data-lenis-prevent] { overscroll-behavior: contain; }
+.lenis.lenis-stopped { overflow: hidden; }
+
+/* Word-split headings: each word slides up from its own mask. */
+.split-w { display: inline-block; overflow: hidden; vertical-align: top; padding-bottom: .14em; margin-bottom: -.14em; }
+.split-w > span { display: inline-block; will-change: transform; }

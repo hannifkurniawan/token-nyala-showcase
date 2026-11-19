@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="TokenNyala">
+  <circle cx="30" cy="34" r="26" fill="#002DBB"/>
+  <rect x="21" y="16" width="18" height="36" rx="9" transform="rotate(40 30 34)" fill="#F7F8FC"/>
+  <circle cx="30" cy="34" r="0" fill="none"/>
+  <circle cx="36.4" cy="26.4" r="6" fill="#002DBB"/>
+  <path d="M52 2 L54.6 9.4 L62 12 L54.6 14.6 L52 22 L49.4 14.6 L42 12 L49.4 9.4 Z" fill="#FFC93C"/>
+</svg>
