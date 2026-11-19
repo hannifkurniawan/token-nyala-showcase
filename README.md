@@ -4,8 +4,8 @@ Landing page konsep TokenNyala — top up saldo AI untuk vibecoder pemula (ekosi
 
 | Versi | Folder | Keterangan |
 |---|---|---|
-| v1 | [`v1/`](v1/) | Arah editorial (terinspirasi Tribestays/Awwwards): HTML, CSS, JS statis + GSAP/Lenis lokal. |
-| v2 | [`v2/`](v2/) | Mobile-first, Tailwind v4 (browser build), ID/EN, checkout, katalog model, chat Nala + animasi GSAP/Lenis lokal (reveal, parallax). |
+| v1 | [`v1/`](v1/) | Mobile-first, Tailwind v4 (browser build), ID/EN, checkout, katalog model, chat Nala + animasi GSAP/Lenis lokal (reveal, parallax). |
+| v2 | [`v2/`](v2/) | Arah editorial (terinspirasi Tribestays/Awwwards): HTML, CSS, JS statis + GSAP/Lenis lokal. |
 
 Cara buka v1: buka `v1/index.html` di browser, atau `cd v1 && python3 -m http.server 8000`.
 

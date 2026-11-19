@@ -1,1412 +1,918 @@
-/* TokenNyala v3 — interactions. See docs/technical-spec.md */
+/* =========================================================
+   TokenNyala — interactions
+   ========================================================= */
 (() => {
   'use strict';
 
-  const LANG_KEY = 'tn-lang';
+  const $ = (sel, root = document) => root.querySelector(sel);
+  const $$ = (sel, root = document) => [...root.querySelectorAll(sel)];
+  const root = document.documentElement;
+  const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const finePointer = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
 
-  /* ---------- Copy (ID default, EN) ---------- */
-  const copy = {
-    id: {
-      skipLink: 'Lewati ke konten utama',
-      brandAria: 'TokenNyala — kembali ke atas',
-      navAria: 'Navigasi utama',
-      navMobileAria: 'Navigasi mobile',
-      navHow: 'Cara kerja',
-      navPackages: 'Paket',
-      navModels: 'Model AI',
-      navFaq: 'FAQ',
-      navCta: 'Isi saldo',
-      langAria: 'Pilih bahasa',
-      langLabel: 'Bahasa',
-      menuOpen: 'Buka menu',
-      menuClose: 'Tutup menu',
-      footerTagline: 'Saldo AI untuk ide yang siap menjadi proyek.',
-      footerExplore: 'Jelajahi',
-      footerLegal: 'Bantuan & legal',
-      footerTerms: 'Syarat & Ketentuan',
-      footerPrivacy: 'Kebijakan Privasi',
-      footerContact: 'Hubungi kami',
-      footerPrototype: 'Konsep interaktif — tidak ada transaksi nyata. Tautan legal adalah contoh.',
-
-      heroEyebrow: 'Untuk ide, prototype, dan proyekmu',
-      heroTitleA: 'Mulai vibecoding.',
-      heroTitleB: 'Jangan berhenti di tengah jalan.',
-      heroLead: 'Isi saldo AI dengan mudah, pilih nominal sesuai proyek, dan lanjutkan membangun—tanpa harus memahami istilah teknis dulu.',
-      heroCta: 'Isi saldo',
-      heroSecondary: 'Lihat cara kerjanya',
-      heroTrustAria: 'Keunggulan',
-      trustLocal: 'Bayar lokal',
-      trustFast: 'Saldo aktif cepat',
-      trustReceipt: 'Lihat bukti transaksi',
-      boardCaption: 'Ilustrasi: proyek sedang dibangun dengan bantuan AI, saldo menunjukkan status.',
-      boardProject: 'Event Landing Page',
-      boardTag: 'Proyek',
-      boardPrompt: 'Buat hero lebih hangat dan sederhana',
-      boardCoding: 'Menulis komponen…',
-      boardPreview: 'Halaman event siap',
-      boardBalance: 'Saldo aktif',
-      boardStatusOff: 'Belum nyala',
-      boardStatusOn: 'Nyala',
-      boardStatusReady: 'Siap dinyalakan',
-      boardBalanceReady: 'Saldo setelah top up',
-      boardEstimateOff: 'Pilih paket untuk menyalakan saldo',
-      boardEstimateOn: 'Estimasi: {estimate}',
-
-      howKicker: 'Cara kerja',
-      howTitle: 'Dari ide ke proyek, tanpa langkah yang membingungkan.',
-      howStepsAria: 'Tiga langkah',
-      step1Title: 'Pilih tujuanmu',
-      step1Body: 'Belajar, bikin prototype, atau kerjakan proyek. Kami sarankan paket yang pas.',
-      step1ChipsAria: 'Pilihan tujuan',
-      intentLearn: 'Belajar',
-      intentPrototype: 'Prototype',
-      intentWork: 'Kerja',
-      step2Title: 'Bayar dengan mudah',
-      step2Body: 'Gunakan QRIS, e-wallet, atau virtual account. Rincian biaya terlihat sebelum bayar.',
-      step2ChipsAria: 'Keunggulan pembayaran',
-      step2Chip1: 'Nominal jelas',
-      step2Chip2: 'Biaya tambahan Rp0',
-      step2Chip3: 'Metode lokal',
-      step3Title: 'Lanjutkan membangun',
-      step3Body: 'Saldo siap dipakai dan momentum proyek tidak terputus.',
-      step3ChipsAria: 'Setelah top up',
-      step3Chip1: 'Status saldo',
-      step3Chip2: 'Riwayat pembelian',
-      step3Chip3: 'Kembali ke proyek',
-
-      pkgKicker: 'Paket',
-      pkgTitle: 'Berapa yang ingin kamu nyalakan?',
-      pkgLead: 'Pilih tujuanmu, kami tunjukkan paket yang paling pas. Semua paket bisa dipakai untuk semua model AI.',
-      intentTabsAria: 'Pilih tujuan',
-      pkgListAria: 'Pilihan paket',
-      recoTitle: 'Paling pas untuk {intent}: {name} · {price}',
-      recoIntent_learn: 'belajar',
-      recoIntent_prototype: 'prototype',
-      recoIntent_work: 'kerja',
-      reco_learn: 'Titik awal yang ringan untuk belajar dan proyek pertama.',
-      reco_prototype: 'Cukup untuk iterasi satu prototype aktif.',
-      reco_work: 'Untuk proyek berkelanjutan dan kebutuhan klien.',
-      pkgChoose: 'Pilih {price}',
-      pkgChosen: 'Paket {price} dipilih',
-      badgeRecommended: 'Paling pas',
-      badgeSelected: 'Dipilih',
-      pkgFor_learn: 'Belajar dan mencoba pertama kali',
-      pkgFor_prototype: 'Membuat satu prototype aktif',
-      pkgFor_work: 'Freelancer atau proyek berkelanjutan',
-      pkgHelper_learn: 'Cocok untuk memahami alur atau menyelesaikan satu mini-task.',
-      pkgHelper_prototype: 'Cocok untuk iterasi tampilan, prompt, dan perbaikan singkat.',
-      pkgHelper_work: 'Cocok saat kamu mulai mengerjakan kebutuhan klien atau banyak iterasi.',
-      pkgBonus: 'Bonus',
-      pkgTotal: 'Total saldo',
-      pkgCredits: 'kredit',
-      estimateLabel: 'Estimasi',
-      pkgSessions_learn: '20–30 sesi kecil',
-      pkgSessions_prototype: '40–60 sesi kecil',
-      pkgSessions_work: '100+ sesi kecil',
-      creditRules: '1 kredit = Rp1 · Sudah termasuk PPN · Tidak kedaluwarsa',
-      seeModels: 'Lihat model yang bisa dipakai',
-      estimateDisclaimer: 'Estimasi bergantung pada model, panjang prompt, tipe tugas, dan format output.',
-      pkgAnnounce: 'Paket {name} dipilih. Saldo {credit} kredit.',
-
-      coTitle: 'Ringkas top up',
-      coClose: 'Tutup checkout',
-      coNotice: 'Ini adalah checkout simulasi. Tidak ada transaksi atau penarikan dana nyata.',
-      coPackageLegend: 'Paket',
-      coBreakdownAria: 'Rincian biaya',
-      coNominal: 'Nominal paket',
-      coBonus: 'Bonus kredit',
-      coFee: 'Biaya tambahan',
-      coTotal: 'Total bayar',
-      coCreditNote: 'Saldo masuk {credit} kredit · 1 kredit = Rp1 · Sudah termasuk PPN',
-      coContactLabel: 'Email atau nomor HP',
-      coContactHelp: 'Bukti pembelian dikirim ke sini.',
-      coContactPlaceholder: 'nama@email.com atau 0812xxxxxxxx',
-      errContactEmpty: 'Masukkan email atau nomor HP agar bukti pembelian bisa dikirim.',
-      errEmailInvalid: 'Format email belum sesuai. Coba cek lagi alamatnya.',
-      errPhoneInvalid: 'Nomor HP belum sesuai. Gunakan format 08xx atau +628xx.',
-      coMethodLegend: 'Pilih metode pembayaran',
-      methodQrisHint: 'Pindai dari aplikasi bank atau e-wallet',
-      methodEwalletHint: 'DANA, GoPay, OVO',
-      methodVaHint: 'Transfer dari bank mana pun',
-      errMethod: 'Pilih satu metode pembayaran untuk melanjutkan.',
-      coSubmit: 'Lanjut bayar {total}',
-      coPayTitle_qris: 'Pindai QRIS',
-      coPayBody_qris: 'Pindai kode contoh ini untuk melihat alurnya. Kode ini tidak bisa dipakai membayar.',
-      coPayTitle_va: 'Transfer ke virtual account',
-      coPayBody_va: 'Nomor contoh dibuat di perangkatmu dan tidak terhubung ke bank.',
-      coPayTitle_ewallet: 'Bayar dengan e-wallet',
-      coPayBody_ewallet: 'Pilih aplikasi untuk menyetujui pembayaran (simulasi).',
-      coWaiting: 'Menunggu pembayaran {total}',
-      coQrAria: 'Kode QR contoh, tidak bisa dipindai',
-      coVaLabel: 'Nomor virtual account',
-      coPaid: 'Saya sudah bayar',
-      coChecking: 'Memeriksa pembayaran…',
-      coSimFail: 'Simulasikan pembayaran gagal',
-      coBack: 'Ubah data',
-      coCopy: 'Salin',
-      coCopied: 'Tersalin',
-      successTitle: 'Saldo nyala!',
-      successBody: 'Paket {name} ({price}) sudah tercatat di simulasi ini. Bukti pembelian dikirim ke {contact}.',
-      successKeyLabel: 'API key kamu',
-      successCopyKey: 'Salin API key',
-      successGuide: 'Lihat panduan pasang',
-      successWarning: 'Simpan API key seperti kata sandi. Jangan dibagikan.',
-      successNotice: 'Prototype — tidak ada transaksi nyata.',
-      failTitle: 'Pembayaran belum berhasil',
-      failBody: 'Tidak ada saldo yang terpotong pada prototipe ini. Pilih metode lain atau coba lagi.',
-      failRetry: 'Coba lagi',
-
-      modelsKicker: 'Model AI',
-      modelsTitle: 'Satu saldo untuk semua model.',
-      modelsBody: 'Paket apa pun, pilihan modelnya sama. Pilih model hemat untuk tugas ringan, model premium untuk pekerjaan rumit.',
-      modelsCta: 'Lihat semua model & tarif',
-      modelsNote: '1 sesi kecil ≈ satu permintaan perbaikan komponen di tool coding (±40 rb token masuk, ±4 rb token keluar). Contoh — daftar dan tarif dapat berubah.',
-      modelListAria: 'Model pilihan',
-      tier_hemat: 'Hemat',
-      tier_seimbang: 'Seimbang',
-      tier_premium: 'Premium',
-      modelSessions: '≈ {n}',
-      modelSessionsUnit: 'sesi kecil / {price}',
-      modelRates: 'Detail tarif',
-      rateInput: 'Input',
-      rateOutput: 'Output',
-      rateContext: 'Konteks',
-      rateUnit: '{n} kredit',
-      rateCaption: 'Tarif per 1 jt token',
-      contextUnit: '{n} token',
-      use_coding: 'Coding',
-      use_chat: 'Chat & menulis',
-      use_analysis: 'Analisis dokumen',
-      catTitle: 'Model AI yang tersedia',
-      catSubtitle: 'Satu saldo untuk semua model. Paket apa pun, pilihan modelnya sama.',
-      catClose: 'Tutup katalog model',
-      catSearchLabel: 'Cari model',
-      catSearchPlaceholder: 'Cari model, misalnya Claude',
-      catFilterToggle: 'Filter',
-      filterUse: 'Kegunaan',
-      filterTier: 'Level biaya',
-      filterProvider: 'Penyedia',
-      catCount: 'Menampilkan {a} dari {b} model',
-      catMore: 'Tampilkan lebih banyak',
-      catEmpty: 'Model tidak ditemukan. Coba kata kunci atau filter lain.',
-      catClear: 'Hapus filter',
-
-      useKicker: 'Panduan pasang',
-      useTitle: 'Pakai di tool favoritmu.',
-      useBody: 'API key adalah kunci yang menghubungkan tool-mu ke saldo TokenNyala.',
-      useStepsAria: 'Langkah pemasangan',
-      use1Title: 'Salin API key',
-      use1Body: 'Ada di halaman saldo setelah top up.',
-      use2Title: 'Tempel di tool',
-      use2Body: 'Isi Base URL dan API key di pengaturan tool.',
-      use3Title: 'Pilih model & mulai',
-      use3Body: 'Semua model memakai saldo yang sama.',
-      useConfigTitle: 'Contoh konfigurasi',
-      useConfigTag: 'contoh',
-      useCompat: 'Bisa dipakai di tool yang mendukung OpenAI API, contoh:',
-      useToolsAria: 'Contoh tool',
-      useConfigNote: 'Contoh — bukan endpoint atau kunci asli.',
-      useNoKey: 'Belum punya API key? Isi saldo dulu, kuncinya langsung muncul.',
-
-      benefitKicker: 'Kenapa TokenNyala',
-      benefitTitle: 'Jangan hanya beli saldo. Pastikan proyekmu punya waktu untuk jadi.',
-      ben1Title: 'Pilihan yang bisa kamu pahami',
-      ben1Body: 'Nominal dan estimasi dijelaskan dari kebutuhan proyek, bukan dari nama model dan istilah teknis.',
-      ben2Title: 'Satu saldo untuk lanjut',
-      ben2Body: 'Isi sekali, lalu pakai untuk semua model AI yang tersedia.',
-      ben3Title: 'Bayar dengan cara yang familiar',
-      ben3Body: 'QRIS, e-wallet, dan virtual account — metode yang sehari-hari dipakai di Indonesia.',
-      ben4Title: 'Pantau dan kendalikan',
-      ben4Body: 'Lihat sisa saldo, pemakaian harian, dan matikan API key kapan saja.',
-      sampleView: 'Contoh tampilan',
-      dashBalance: 'Saldo tersisa',
-      dashOf: 'dari',
-      dashUsage: 'Pemakaian 7 hari',
-      dashUsageAria: 'Pemakaian 7 hari terakhir, tertinggi hari Jumat',
-      dashDays: 'Sen,Sel,Rab,Kam,Jum,Sab,Min',
-      dashDaysLong: 'Senin,Selasa,Rabu,Kamis,Jumat,Sabtu,Minggu',
-      dashRemind: 'Ingatkan saat saldo < Rp20.000',
-      dashRemindOn: 'Pengingat saldo aktif',
-      dashRemindOff: 'Pengingat saldo mati',
-      dashKeyName: 'Laptop kerja',
-      dashKeyActive: 'Aktif',
-      dashKeyInactive: 'Nonaktif',
-      dashKeyDisable: 'Nonaktifkan',
-      dashKeyEnable: 'Aktifkan',
-      dashKeyAnnounce: 'API key Laptop kerja {status}',
-      exKicker: 'Contoh penggunaan',
-      exTitle: 'Satu landing page event, kira-kira butuh berapa?',
-      exBody: 'Begini perkiraan pemakaian saat kamu membangun satu halaman dengan bantuan AI, memakai model level Seimbang.',
-      exProject: 'Proyek: Event Landing Page',
-      exTask1: 'Buat layout awal halaman',
-      exTask2: 'Rapikan tampilan mobile',
-      exTask3: 'Tambah form pendaftaran',
-      exTask4: 'Perbaiki copy dan warna',
-      exTotal: 'Total sesi kecil',
-      exCostLabel: 'Perkiraan biaya:',
-      exFit: 'Paket Mulai (55.000 kredit) cukup, masih ada sisa untuk iterasi.',
-      exCta: 'Pilih paket Mulai',
-
-      teamKicker: 'Untuk tim & bisnis',
-      teamTitle: 'Butuh untuk tim atau perusahaan?',
-      teamPt1: 'Invoice atas nama perusahaan',
-      teamPt2: 'Faktur pajak',
-      teamPt3: 'Bayar lewat transfer bank',
-      teamPt4: 'Pantau pemakaian tiap anggota',
-      teamCta: 'Konsultasi untuk tim',
-      teamReply: 'Kami balas dalam 1 hari kerja.',
-      csTitle: 'Konsultasi untuk tim',
-      csIntro: 'Ceritakan kebutuhan timmu. Kami hubungi dalam 1 hari kerja.',
-      csClose: 'Tutup konsultasi',
-      csName: 'Nama',
-      csOrg: 'Nama tim atau perusahaan',
-      csSize: 'Ukuran tim',
-      csNeed: 'Ceritakan kebutuhanmu (opsional)',
-      csCountLive: '{n} dari 500 karakter',
-      csInvoice: 'Butuh invoice perusahaan / faktur pajak',
-      csConsent: 'Saya setuju dengan Syarat & Ketentuan dan Kebijakan Privasi',
-      csSubmit: 'Kirim',
-      errName: 'Nama wajib diisi.',
-      errOrg: 'Nama tim atau perusahaan wajib diisi.',
-      errTeamSize: 'Pilih ukuran tim.',
-      errConsent: 'Centang persetujuan untuk melanjutkan.',
-      errCsContactEmpty: 'Masukkan email atau nomor HP agar kami bisa menghubungimu.',
-      csSuccessTitle: 'Terima kasih!',
-      csSuccessBody: 'Tim kami menghubungi kamu di {contact} dalam 1 hari kerja.',
-      csSuccessNotice: 'Simulasi — tidak ada data yang dikirim.',
-      csDone: 'Selesai',
-
-      faqKicker: "FAQ",
-      faqTitle: "Pertanyaan yang sering muncul.",
-      faqBody: "Belum menemukan jawabannya? Tim kami siap membantu.",
-      faqQ1: "Kapan saldo aktif?",
-      faqA1: "Pada produk nyata, saldo aktif setelah pembayaran dikonfirmasi — biasanya dalam hitungan menit. Pada prototype ini, konfirmasi hanya menampilkan status sukses simulasi.",
-      faqQ2: "Model AI apa saja yang bisa dipakai?",
-      faqA2: "Satu saldo bisa dipakai untuk semua model yang tersedia, misalnya Claude, GPT, Gemini, DeepSeek, dan Qwen. Paket apa pun, pilihan modelnya sama. Model hemat membuat saldo lebih awet; model premium lebih kuat untuk tugas rumit.",
-      faqQ3: "Apakah saldo bisa kedaluwarsa?",
-      faqA3: "Tidak. Saldo dan bonus kredit tidak kedaluwarsa. Saldo tidak bisa diuangkan atau dipindahkan ke akun lain.",
-      faqQ4: "Apakah harga sudah termasuk PPN?",
-      faqA4: "Ya. Harga paket sudah termasuk PPN, tanpa biaya tambahan. 1 kredit setara Rp1.",
-      faqQ5: "Apakah estimasi jumlah sesi pasti?",
-      faqA5: "Tidak. Panjang prompt, model, dan format output memengaruhi pemakaian. Estimasi di halaman ini memakai satu “sesi kecil” (±40 rb token masuk, ±4 rb token keluar) sebagai patokan.",
-      faqQ6: "Apakah saldo terpotong kalau permintaan gagal?",
-      faqA6: "Tidak. Permintaan yang gagal dan tidak menghasilkan jawaban tidak memotong saldo.",
-      faqQ7: "Metode pembayaran apa saja?",
-      faqA7: "QRIS, e-wallet (DANA, GoPay, OVO), dan virtual account. Di prototype ini semuanya simulasi.",
-      faqQ8: "Bisakah refund atau batal?",
-      faqA8: "Pembayaran yang belum selesai bisa dibatalkan kapan saja. Saldo yang sudah masuk tidak bisa diuangkan. Kebijakan refund lengkap akan ditetapkan sebelum peluncuran; prototype ini tidak memproses transaksi nyata.",
-      faqQ9: "Ke mana data prompt saya dikirim?",
-      faqA9: "Prompt dikirim ke penyedia model yang kamu pilih untuk diproses, dan bisa diproses di pusat data di luar Indonesia. Kami tidak memakai prompt atau hasilnya untuk melatih model. Pada prototype ini tidak ada data yang dikirim.",
-      faqQ10: "Bagaimana kalau API key saya bocor?",
-      faqA10: "Nonaktifkan API key itu dari halaman saldo, lalu buat yang baru. Semua pemakaian lewat API key memotong saldomu, jadi simpan seperti kata sandi.",
-      faqQ11: "Bisakah membeli untuk tim dan meminta invoice perusahaan?",
-      faqA11: "Bisa. Kami bantu siapkan invoice atas nama perusahaan, faktur pajak, dan pemantauan pemakaian per anggota. Klik “Konsultasi untuk tim” dan kami hubungi dalam 1 hari kerja.",
-      finalTitle: "Nyala sekarang.",
-      finalBody: "Isi saldo AI dalam hitungan menit, pahami apa yang bisa dikerjakan paketmu, lalu lanjut membangun.",
-      finalTrust: "Biaya tambahan Rp0 · Bayar lokal · Saldo tidak kedaluwarsa",
-      finalSecondary: "Lihat paket",
-
-      chatLauncher: "Butuh bantuan?",
-      faqAsk: "Tanya Nala",
-      chatName: "Nala",
-      chatStatus: "Asisten otomatis",
-      chatRestart: "Mulai ulang percakapan",
-      chatClose: "Tutup chat",
-      chatLogAria: "Percakapan",
-      chatInputLabel: "Pesan",
-      chatPlaceholder: "Tulis pertanyaanmu…",
-      chatPlaceholderContact: "Email atau nomor HP",
-      chatSend: "Kirim pesan",
-      chatDisclaimer: "Nala adalah asisten otomatis (simulasi). Jawaban bisa kurang tepat.",
-      chatGreeting: "Hai, aku Nala! Mau dibantu pilih paket, atau ada pertanyaan lain?",
-      chipPick: "Bantu pilih paket",
-      chipHowto: "Cara pakai saldo di tool",
-      chipModels: "Model apa saja?",
-      chipPay: "Metode pembayaran",
-      chipTeam: "Bicara dengan tim",
-      freqOnce: "Sesekali",
-      freqWeekly: "Tiap minggu",
-      freqDaily: "Tiap hari",
-      chipRestartFlow: "Ulangi",
-      pickQ1: "Kamu mau pakai AI untuk apa?",
-      pickQ2: "Seberapa sering kamu akan memakainya?",
-      pickResult: "Paket {name} ({price}) paling pas buatmu — {estimate}.",
-      pickChoose: "Pilih paket ini",
-      ansHowto: "Setelah top up, salin API key, lalu tempel bersama Base URL di pengaturan tool-mu. Mau lihat panduannya?",
-      ansModels: "Satu saldo bisa dipakai di semua model. Model hemat bikin saldo awet, model premium untuk tugas rumit.",
-      ansModelsBtn: "Buka katalog model",
-      ansPay: "Kamu bisa bayar pakai QRIS, e-wallet, atau virtual account. Di prototype ini semuanya simulasi.",
-      ansFallback: "Maaf, aku belum paham. Coba pilih salah satu topik ini, atau bicara dengan tim.",
-      teamConnecting: "Menghubungkan ke tim…",
-      agentName: "Sari",
-      agentBadge: "Tim",
-      agentStatus: "Sari · Tim TokenNyala",
-      agentGreeting: "Halo, aku Sari dari tim TokenNyala. Ada yang bisa kubantu soal top up?",
-      agentReply: "Pesanmu sudah kami terima. Di produk nyata, tim akan membalas di sini dalam beberapa menit.",
-      teamModeLabel: "Simulasi — tidak ada agen nyata",
-      teamHours: "Tim online Senin–Jumat, 09.00–18.00 WIB",
-      teamOffline: "Tim sedang offline. Tinggalkan email atau nomor HP, kami balas di jam kerja.",
-      teamOfflineThanks: "Terima kasih! Kami balas ke {contact} di jam kerja.",
-      typingNala: "Nala sedang mengetik…",
-      typingSari: "Sari sedang mengetik…",
-
-      pkgEstimate_learn: 'sekitar 20–30 sesi kecil',
-      pkgEstimate_prototype: 'sekitar 40–60 sesi kecil',
-      pkgEstimate_work: '100+ sesi kecil'
-    },
-    en: {
-      skipLink: 'Skip to main content',
-      brandAria: 'TokenNyala — back to top',
-      navAria: 'Main navigation',
-      navMobileAria: 'Mobile navigation',
-      navHow: 'How it works',
-      navPackages: 'Packages',
-      navModels: 'AI models',
-      navFaq: 'FAQ',
-      navCta: 'Top up',
-      langAria: 'Choose language',
-      langLabel: 'Language',
-      menuOpen: 'Open menu',
-      menuClose: 'Close menu',
-      footerTagline: 'AI balance for ideas that are ready to become projects.',
-      footerExplore: 'Explore',
-      footerLegal: 'Help & legal',
-      footerTerms: 'Terms',
-      footerPrivacy: 'Privacy Policy',
-      footerContact: 'Contact us',
-      footerPrototype: 'Interactive concept — no real transactions. Legal links are placeholders.',
-
-      heroEyebrow: 'For ideas, prototypes, and projects',
-      heroTitleA: 'Start vibe\u2011coding.', // non-breaking hyphen
-      heroTitleB: 'Keep building without interruptions.',
-      heroLead: 'Top up AI credit in a simple flow, choose an amount that fits your project, and keep moving—without learning technical terms first.',
-      heroCta: 'Top up balance',
-      heroSecondary: 'How it works',
-      heroTrustAria: 'Highlights',
-      trustLocal: 'Local payment',
-      trustFast: 'Fast activation',
-      trustReceipt: 'Clear receipts',
-      boardCaption: 'Illustration: a project being built with AI, with the balance showing its status.',
-      boardProject: 'Event Landing Page',
-      boardTag: 'Project',
-      boardPrompt: 'Make the hero warmer and simpler',
-      boardCoding: 'Writing component…',
-      boardPreview: 'Event page ready',
-      boardBalance: 'Active balance',
-      boardStatusOff: 'Not on yet',
-      boardStatusOn: 'On',
-      boardStatusReady: 'Ready to switch on',
-      boardBalanceReady: 'Balance after top up',
-      boardEstimateOff: 'Choose a package to switch your balance on',
-      boardEstimateOn: 'Estimate: {estimate}',
-
-      howKicker: 'How it works',
-      howTitle: 'From idea to project, without confusing steps.',
-      howStepsAria: 'Three steps',
-      step1Title: 'Choose your goal',
-      step1Body: 'Learn, build a prototype, or work on a project. We suggest the right package.',
-      step1ChipsAria: 'Goal options',
-      intentLearn: 'Learn',
-      intentPrototype: 'Prototype',
-      intentWork: 'Work',
-      step2Title: 'Pay easily',
-      step2Body: 'Use QRIS, e-wallet, or virtual account. See every fee before you pay.',
-      step2ChipsAria: 'Payment highlights',
-      step2Chip1: 'Clear amounts',
-      step2Chip2: 'Rp0 extra fees',
-      step2Chip3: 'Local methods',
-      step3Title: 'Keep building',
-      step3Body: 'Your balance is ready and your project keeps its momentum.',
-      step3ChipsAria: 'After topping up',
-      step3Chip1: 'Balance status',
-      step3Chip2: 'Purchase history',
-      step3Chip3: 'Back to your project',
-
-      pkgKicker: 'Packages',
-      pkgTitle: 'How much do you want to switch on?',
-      pkgLead: "Pick your goal and we'll show the package that fits. Every package works with every AI model.",
-      intentTabsAria: 'Choose your goal',
-      pkgListAria: 'Package options',
-      recoTitle: 'Best fit for {intent}: {name} · {price}',
-      recoIntent_learn: 'learning',
-      recoIntent_prototype: 'prototyping',
-      recoIntent_work: 'work',
-      reco_learn: 'A light start for learning and your first project.',
-      reco_prototype: 'Enough to iterate on one active prototype.',
-      reco_work: 'For ongoing projects and client work.',
-      pkgChoose: 'Choose {price}',
-      pkgChosen: '{price} package selected',
-      badgeRecommended: 'Best fit',
-      badgeSelected: 'Selected',
-      pkgFor_learn: 'Learning and first tries',
-      pkgFor_prototype: 'Building one active prototype',
-      pkgFor_work: 'Freelancers and ongoing projects',
-      pkgHelper_learn: 'Good for understanding the flow or finishing one mini-task.',
-      pkgHelper_prototype: 'Good for iterating on UI, prompts, and quick fixes.',
-      pkgHelper_work: 'Good when you start client work or need many iterations.',
-      pkgBonus: 'Bonus',
-      pkgTotal: 'Total balance',
-      pkgCredits: 'credits',
-      estimateLabel: 'Estimate',
-      pkgSessions_learn: '20–30 small sessions',
-      pkgSessions_prototype: '40–60 small sessions',
-      pkgSessions_work: '100+ small sessions',
-      creditRules: '1 credit = Rp1 · Tax included · Never expires',
-      seeModels: 'See available models',
-      estimateDisclaimer: 'Estimates depend on the model, prompt length, task type, and output format.',
-      pkgAnnounce: '{name} package selected. Balance {credit} credits.',
-
-      coTitle: 'Top-up summary',
-      coClose: 'Close checkout',
-      coNotice: 'This is a simulated checkout. No real transaction or charge happens.',
-      coPackageLegend: 'Package',
-      coBreakdownAria: 'Price breakdown',
-      coNominal: 'Package price',
-      coBonus: 'Bonus credit',
-      coFee: 'Extra fees',
-      coTotal: 'Total to pay',
-      coCreditNote: 'You receive {credit} credits · 1 credit = Rp1 · Tax included',
-      coContactLabel: 'Email or phone number',
-      coContactHelp: "We'll send your receipt here.",
-      coContactPlaceholder: 'name@email.com or 0812xxxxxxxx',
-      errContactEmpty: 'Enter your email or phone number so we can send your receipt.',
-      errEmailInvalid: "That email doesn't look right. Please check it again.",
-      errPhoneInvalid: "That phone number doesn't look right. Use 08xx or +628xx.",
-      coMethodLegend: 'Choose a payment method',
-      methodQrisHint: 'Scan from any bank or e-wallet app',
-      methodEwalletHint: 'DANA, GoPay, OVO',
-      methodVaHint: 'Transfer from any bank',
-      errMethod: 'Choose a payment method to continue.',
-      coSubmit: 'Continue to pay {total}',
-      coPayTitle_qris: 'Scan the QRIS code',
-      coPayBody_qris: "Scan this sample code to see the flow. It can't be used to pay.",
-      coPayTitle_va: 'Transfer to the virtual account',
-      coPayBody_va: "This sample number is generated on your device and isn't linked to a bank.",
-      coPayTitle_ewallet: 'Pay with an e-wallet',
-      coPayBody_ewallet: 'Choose an app to approve the payment (simulation).',
-      coWaiting: 'Waiting for a payment of {total}',
-      coQrAria: 'Sample QR code, cannot be scanned',
-      coVaLabel: 'Virtual account number',
-      coPaid: "I've paid",
-      coChecking: 'Checking payment…',
-      coSimFail: 'Simulate a failed payment',
-      coBack: 'Edit details',
-      coCopy: 'Copy',
-      coCopied: 'Copied',
-      successTitle: 'Your balance is on!',
-      successBody: '{name} package ({price}) is recorded in this simulation. Receipt sent to {contact}.',
-      successKeyLabel: 'Your API key',
-      successCopyKey: 'Copy API key',
-      successGuide: 'See setup guide',
-      successWarning: "Keep your API key like a password. Don't share it.",
-      successNotice: 'Prototype — no real transaction.',
-      failTitle: "Payment didn't go through",
-      failBody: 'Nothing was charged in this prototype. Choose another method or try again.',
-      failRetry: 'Try again',
-
-      modelsKicker: 'AI models',
-      modelsTitle: 'One balance for every model.',
-      modelsBody: 'Every package unlocks the same models. Pick a budget model for light tasks and a premium one for hard problems.',
-      modelsCta: 'See all models & rates',
-      modelsNote: '1 small session ≈ one component fix request in a coding tool (~40K tokens in, ~4K out). Example only — models and rates may change.',
-      modelListAria: 'Featured models',
-      tier_hemat: 'Budget',
-      tier_seimbang: 'Balanced',
-      tier_premium: 'Premium',
-      modelSessions: '≈ {n}',
-      modelSessionsUnit: 'small sessions / {price}',
-      modelRates: 'Rate details',
-      rateInput: 'Input',
-      rateOutput: 'Output',
-      rateContext: 'Context',
-      rateUnit: '{n} credits',
-      rateCaption: 'Rates per 1M tokens',
-      contextUnit: '{n} tokens',
-      use_coding: 'Coding',
-      use_chat: 'Chat & writing',
-      use_analysis: 'Document analysis',
-      catTitle: 'Available AI models',
-      catSubtitle: 'One balance for every model, whichever package you choose.',
-      catClose: 'Close model catalog',
-      catSearchLabel: 'Search models',
-      catSearchPlaceholder: 'Search models, e.g. Claude',
-      catFilterToggle: 'Filters',
-      filterUse: 'Use',
-      filterTier: 'Cost level',
-      filterProvider: 'Provider',
-      catCount: 'Showing {a} of {b} models',
-      catMore: 'Show more',
-      catEmpty: 'No models found. Try another keyword or filter.',
-      catClear: 'Clear filters',
-
-      useKicker: 'Setup guide',
-      useTitle: 'Use it in your favorite tools.',
-      useBody: 'An API key connects your tools to your TokenNyala balance.',
-      useStepsAria: 'Setup steps',
-      use1Title: 'Copy your API key',
-      use1Body: 'Find it on your balance page after topping up.',
-      use2Title: 'Paste it into your tool',
-      use2Body: 'Fill in the Base URL and API key in settings.',
-      use3Title: 'Pick a model & build',
-      use3Body: 'Every model uses the same balance.',
-      useConfigTitle: 'Sample configuration',
-      useConfigTag: 'example',
-      useCompat: 'Works with tools that support the OpenAI API, for example:',
-      useToolsAria: 'Example tools',
-      useConfigNote: 'Example only — not a real endpoint or key.',
-      useNoKey: 'No API key yet? Top up first and your key appears right away.',
-
-      benefitKicker: 'Why TokenNyala',
-      benefitTitle: "Don't just buy credit. Give your project the time it needs to ship.",
-      ben1Title: 'Choices you can understand',
-      ben1Body: 'Amounts and estimates are explained by what your project needs, not by model names and jargon.',
-      ben2Title: 'One balance to keep going',
-      ben2Body: 'Top up once, then use it with every available AI model.',
-      ben3Title: 'Pay the way you already do',
-      ben3Body: 'QRIS, e-wallets, and virtual accounts — the methods people in Indonesia use every day.',
-      ben4Title: 'Track and stay in control',
-      ben4Body: 'See your balance, daily usage, and switch off any API key anytime.',
-      sampleView: 'Sample view',
-      dashBalance: 'Balance left',
-      dashOf: 'of',
-      dashUsage: 'Last 7 days',
-      dashUsageAria: 'Usage over the last 7 days, highest on Friday',
-      dashDays: 'Mon,Tue,Wed,Thu,Fri,Sat,Sun',
-      dashDaysLong: 'Monday,Tuesday,Wednesday,Thursday,Friday,Saturday,Sunday',
-      dashRemind: 'Remind me when balance < Rp20,000',
-      dashRemindOn: 'Balance reminder on',
-      dashRemindOff: 'Balance reminder off',
-      dashKeyName: 'Work laptop',
-      dashKeyActive: 'Active',
-      dashKeyInactive: 'Disabled',
-      dashKeyDisable: 'Disable',
-      dashKeyEnable: 'Enable',
-      dashKeyAnnounce: 'Work laptop API key {status}',
-      exKicker: 'Example',
-      exTitle: 'One event landing page — how much does it take?',
-      exBody: 'Here is a rough estimate for building one page with AI help, using a Balanced-level model.',
-      exProject: 'Project: Event Landing Page',
-      exTask1: 'Build the first page layout',
-      exTask2: 'Polish the mobile view',
-      exTask3: 'Add a sign-up form',
-      exTask4: 'Fix copy and colours',
-      exTotal: 'Total small sessions',
-      exCostLabel: 'Estimated cost:',
-      exFit: 'The Mulai package (55,000 credits) is enough, with room left to iterate.',
-      exCta: 'Choose the Mulai package',
-
-      teamKicker: 'For teams & business',
-      teamTitle: 'Buying for a team or company?',
-      teamPt1: "Invoices in your company's name",
-      teamPt2: 'Tax invoices',
-      teamPt3: 'Pay by bank transfer',
-      teamPt4: "Track each member's usage",
-      teamCta: 'Talk to us about your team',
-      teamReply: 'We reply within 1 business day.',
-      csTitle: 'Team consultation',
-      csIntro: "Tell us what your team needs. We'll reply within 1 business day.",
-      csClose: 'Close consultation',
-      csName: 'Name',
-      csOrg: 'Team or company name',
-      csSize: 'Team size',
-      csNeed: 'Tell us what you need (optional)',
-      csCountLive: '{n} of 500 characters',
-      csInvoice: 'I need a company invoice / tax invoice',
-      csConsent: 'I agree to the Terms and Privacy Policy',
-      csSubmit: 'Send',
-      errName: 'Please enter your name.',
-      errOrg: 'Please enter your team or company name.',
-      errTeamSize: 'Choose a team size.',
-      errConsent: 'Tick the agreement to continue.',
-      errCsContactEmpty: 'Enter your email or phone number so we can reach you.',
-      csSuccessTitle: 'Thank you!',
-      csSuccessBody: 'Our team will contact you at {contact} within 1 business day.',
-      csSuccessNotice: 'Simulation — no data is sent.',
-      csDone: 'Done',
-
-      faqKicker: "FAQ",
-      faqTitle: "Frequently asked questions.",
-      faqBody: "Still looking for an answer? Our team is here to help.",
-      faqQ1: "When is my balance active?",
-      faqA1: "In the real product, your balance is active once payment is confirmed — usually within minutes. In this prototype, confirming only shows a simulated success state.",
-      faqQ2: "Which AI models can I use?",
-      faqA2: "One balance works with every available model, such as Claude, GPT, Gemini, DeepSeek, and Qwen. Every package unlocks the same models. Budget models make your balance last longer; premium models handle harder tasks.",
-      faqQ3: "Does my balance expire?",
-      faqA3: "No. Your balance and bonus credit never expire. Balance can't be cashed out or moved to another account.",
-      faqQ4: "Is tax included in the price?",
-      faqA4: "Yes. Package prices include VAT, with no extra fees. 1 credit equals Rp1.",
-      faqQ5: "Are the session estimates exact?",
-      faqA5: "No. Prompt length, model, and output format all affect usage. Estimates on this page use one “small session” (~40K tokens in, ~4K out) as the yardstick.",
-      faqQ6: "Am I charged when a request fails?",
-      faqA6: "No. A failed request that returns no output doesn't use your balance.",
-      faqQ7: "Which payment methods are available?",
-      faqA7: "QRIS, e-wallets (DANA, GoPay, OVO), and virtual accounts. In this prototype they are all simulated.",
-      faqQ8: "Can I get a refund or cancel?",
-      faqA8: "You can cancel a payment that hasn't completed at any time. Balance that has been credited can't be cashed out. The full refund policy will be set before launch; this prototype doesn't process real transactions.",
-      faqQ9: "Where is my prompt data sent?",
-      faqA9: "Prompts go to the provider of the model you choose and may be processed in data centres outside Indonesia. We don't use your prompts or outputs to train models. This prototype sends no data.",
-      faqQ10: "What if my API key leaks?",
-      faqA10: "Disable that key from your balance page and create a new one. Every request made with your key uses your balance, so keep it like a password.",
-      faqQ11: "Can I buy for a team and get a company invoice?",
-      faqA11: "Yes. We can set up invoices in your company's name, tax invoices, and per-member usage tracking. Choose “Talk to us about your team” and we'll reply within 1 business day.",
-      finalTitle: "Switch on now.",
-      finalBody: "Top up AI credit in minutes, see what your package can do, and keep building.",
-      finalTrust: "Rp0 extra fees · Local payment · Balance never expires",
-      finalSecondary: "See packages",
-
-      chatLauncher: "Need help?",
-      faqAsk: "Ask Nala",
-      chatName: "Nala",
-      chatStatus: "Automated assistant",
-      chatRestart: "Restart conversation",
-      chatClose: "Close chat",
-      chatLogAria: "Conversation",
-      chatInputLabel: "Message",
-      chatPlaceholder: "Type your question…",
-      chatPlaceholderContact: "Email or phone number",
-      chatSend: "Send message",
-      chatDisclaimer: "Nala is an automated assistant (simulation). Answers may be inaccurate.",
-      chatGreeting: "Hi, I'm Nala! Want help choosing a package, or got another question?",
-      chipPick: "Help me choose",
-      chipHowto: "Using my balance in tools",
-      chipModels: "Which models?",
-      chipPay: "Payment methods",
-      chipTeam: "Talk to the team",
-      freqOnce: "Occasionally",
-      freqWeekly: "Weekly",
-      freqDaily: "Daily",
-      chipRestartFlow: "Start over",
-      pickQ1: "What will you use AI for?",
-      pickQ2: "How often will you use it?",
-      pickResult: "{name} ({price}) fits you best — {estimate}.",
-      pickChoose: "Choose this package",
-      ansHowto: "After topping up, copy your API key and paste it with the Base URL into your tool's settings. Want to see the guide?",
-      ansModels: "One balance works with every model. Budget models make it last; premium models handle hard tasks.",
-      ansModelsBtn: "Open model catalog",
-      ansPay: "You can pay with QRIS, e-wallets, or virtual accounts. In this prototype they're all simulated.",
-      ansFallback: "Sorry, I didn't get that. Pick one of these topics, or talk to the team.",
-      teamConnecting: "Connecting you to the team…",
-      agentName: "Sari",
-      agentBadge: "Team",
-      agentStatus: "Sari · TokenNyala team",
-      agentGreeting: "Hi, I'm Sari from the TokenNyala team. How can I help with your top-up?",
-      agentReply: "We've got your message. In the real product, the team replies here within a few minutes.",
-      teamModeLabel: "Simulation — no real agent",
-      teamHours: "Team online Mon–Fri, 09:00–18:00 WIB",
-      teamOffline: "The team is offline. Leave your email or phone number and we'll reply during business hours.",
-      teamOfflineThanks: "Thanks! We'll reply to {contact} during business hours.",
-      typingNala: "Nala is typing…",
-      typingSari: "Sari is typing…",
-
-      pkgEstimate_learn: 'about 20–30 small sessions',
-      pkgEstimate_prototype: 'about 40–60 small sessions',
-      pkgEstimate_work: '100+ small sessions'
-    }
+  /* ---------------------------------------------------------
+     Data
+     --------------------------------------------------------- */
+  const PACKAGES = {
+    learn: { id: 'learn', amount: 50000, bonus: 5000, name: 'Mulai', estimate: { id: '20–30 sesi kecil', en: '20–30 small sessions' } },
+    prototype: { id: 'prototype', amount: 100000, bonus: 15000, name: 'Bangun', estimate: { id: '40–60 sesi kecil', en: '40–60 small sessions' } },
+    work: { id: 'work', amount: 250000, bonus: 50000, name: 'Scale', estimate: { id: '100+ sesi kecil', en: '100+ small sessions' } },
   };
+  const PACKAGE_ORDER = ['learn', 'prototype', 'work'];
+  const METER_MAX = 300000; // largest package credits (Scale) = full meter
 
-  /* ---------- Data (docs/technical-spec.md → Interactive Data Model) ---------- */
-  const packages = {
-    learn: { id: 'learn', name: 'Mulai', amount: 50000, bonus: 5000 },
-    prototype: { id: 'prototype', name: 'Bangun', amount: 100000, bonus: 15000 },
-    work: { id: 'work', name: 'Scale', amount: 250000, bonus: 50000 }
-  };
-  const METER_MAX_CREDIT = 300000; // largest package incl. bonus → 100%
-
-  /* Model catalog mock (docs/technical-spec.md → Katalog Model Mock). Rates: credits per 1M tokens, 1 credit = Rp1. */
   const SMALL_SESSION = { inputTokens: 40000, outputTokens: 4000 };
-  const models = [
-    { id: 'deepseek-chat', name: 'DeepSeek Chat', provider: 'DeepSeek', uses: ['coding', 'chat'], in: 4500, out: 18000, ctx: 128000 },
-    { id: 'gemini-flash', name: 'Gemini Flash', provider: 'Google', uses: ['chat', 'analysis'], in: 5000, out: 20000, ctx: 1000000 },
-    { id: 'qwen-plus', name: 'Qwen Plus', provider: 'Alibaba', uses: ['chat'], in: 6000, out: 24000, ctx: 128000 },
-    { id: 'gpt-mini', name: 'GPT Mini', provider: 'OpenAI', uses: ['chat'], in: 6500, out: 26000, ctx: 400000 },
-    { id: 'deepseek-reasoner', name: 'DeepSeek Reasoner', provider: 'DeepSeek', uses: ['analysis', 'coding'], in: 9000, out: 36000, ctx: 128000 },
-    { id: 'claude-haiku', name: 'Claude Haiku', provider: 'Anthropic', uses: ['chat', 'coding'], in: 15000, out: 75000, ctx: 200000 },
-    { id: 'qwen-max', name: 'Qwen Max', provider: 'Alibaba', uses: ['coding', 'chat'], in: 20000, out: 80000, ctx: 256000 },
-    { id: 'gpt', name: 'GPT', provider: 'OpenAI', uses: ['coding', 'chat'], in: 25000, out: 150000, ctx: 400000 },
-    { id: 'claude-sonnet', name: 'Claude Sonnet', provider: 'Anthropic', uses: ['coding', 'analysis'], in: 31500, out: 157500, ctx: 1000000 },
-    { id: 'gemini-pro', name: 'Gemini Pro', provider: 'Google', uses: ['coding', 'analysis'], in: 31500, out: 189000, ctx: 1000000 },
-    { id: 'claude-opus', name: 'Claude Opus', provider: 'Anthropic', uses: ['coding'], in: 78750, out: 393750, ctx: 1000000 },
-    { id: 'gpt-pro', name: 'GPT Pro', provider: 'OpenAI', uses: ['analysis'], in: 150000, out: 600000, ctx: 400000 }
+
+  const MODELS = [
+    { id: 'deepseek-chat', name: 'DeepSeek Chat', provider: 'DeepSeek', uses: ['coding', 'chat'], input: 4500, output: 18000, context: '128K' },
+    { id: 'gemini-flash', name: 'Gemini Flash', provider: 'Google', uses: ['chat', 'analysis'], input: 5000, output: 20000, context: '1M' },
+    { id: 'qwen-plus', name: 'Qwen Plus', provider: 'Alibaba', uses: ['chat'], input: 6000, output: 24000, context: '128K' },
+    { id: 'gpt-mini', name: 'GPT Mini', provider: 'OpenAI', uses: ['chat'], input: 6500, output: 26000, context: '400K' },
+    { id: 'deepseek-reasoner', name: 'DeepSeek Reasoner', provider: 'DeepSeek', uses: ['analysis', 'coding'], input: 9000, output: 36000, context: '128K' },
+    { id: 'claude-haiku', name: 'Claude Haiku', provider: 'Anthropic', uses: ['chat', 'coding'], input: 15000, output: 75000, context: '200K' },
+    { id: 'qwen-max', name: 'Qwen Max', provider: 'Alibaba', uses: ['coding', 'chat'], input: 20000, output: 80000, context: '256K' },
+    { id: 'gpt', name: 'GPT', provider: 'OpenAI', uses: ['coding', 'chat'], input: 25000, output: 150000, context: '400K' },
+    { id: 'claude-sonnet', name: 'Claude Sonnet', provider: 'Anthropic', uses: ['coding', 'analysis'], input: 31500, output: 157500, context: '1M' },
+    { id: 'gemini-pro', name: 'Gemini Pro', provider: 'Google', uses: ['coding', 'analysis'], input: 31500, output: 189000, context: '1M' },
+    { id: 'claude-opus', name: 'Claude Opus', provider: 'Anthropic', uses: ['coding'], input: 78750, output: 393750, context: '1M' },
+    { id: 'gpt-pro', name: 'GPT Pro', provider: 'OpenAI', uses: ['analysis'], input: 150000, output: 600000, context: '400K' },
   ].map((m) => {
-    const sessionCost = (SMALL_SESSION.inputTokens / 1e6) * m.in + (SMALL_SESSION.outputTokens / 1e6) * m.out;
-    const tier = sessionCost < 1000 ? 'hemat' : sessionCost <= 3000 ? 'seimbang' : 'premium';
-    return { ...m, sessionCost, tier, per10k: Math.floor(10000 / sessionCost) };
+    const sessionCost = (SMALL_SESSION.inputTokens / 1e6) * m.input + (SMALL_SESSION.outputTokens / 1e6) * m.output;
+    const level = sessionCost < 1000 ? 'budget' : sessionCost <= 3000 ? 'balanced' : 'premium';
+    return { ...m, sessionCost, per10k: Math.floor(10000 / sessionCost), level };
   });
   const PREVIEW_MODELS = ['claude-sonnet', 'gpt', 'gemini-pro', 'deepseek-chat', 'qwen-plus', 'claude-opus'];
-  // Model family icons (assets/models/SOURCE.md). One icon per family: Claude, GPT, Gemini, DeepSeek, Qwen.
-  const PROVIDER_ICON = {
-    Anthropic: 'assets/models/claude.svg',
-    OpenAI: 'assets/models/openai.svg',
-    Google: 'assets/models/gemini.svg',
-    DeepSeek: 'assets/models/deepseek.svg',
-    Alibaba: 'assets/models/qwen.svg'
-  };
-  const TIER_STYLE = {
-    hemat: 'bg-xl-teal/15 text-teal-ink',
-    seimbang: 'bg-xl-sky/20 text-xl-dark',
-    premium: 'bg-xl-yellow/35 text-xl-dark'
+
+  const USAGE = [2600, 3900, 5400, 3300, 7200, 4700, 5500];
+
+  /* ---------------------------------------------------------
+     Copy (dynamic strings only — static copy lives in HTML)
+     --------------------------------------------------------- */
+  const T = {
+    id: {
+      locale: 'id-ID',
+      intents: { learn: 'Belajar', prototype: 'Prototype', work: 'Kerja' },
+      fit: { learn: 'Untuk belajar', prototype: 'Untuk prototype', work: 'Untuk kerja' },
+      pkgFor: { learn: 'Belajar dan mencoba pertama kali', prototype: 'Membuat satu prototype aktif', work: 'Freelancer atau proyek yang berkelanjutan' },
+      pkgHelper: {
+        learn: 'Cocok untuk memahami alur atau menyelesaikan satu mini-task.',
+        prototype: 'Cocok untuk iterasi tampilan, prompt, dan perbaikan singkat.',
+        work: 'Cocok saat kamu mulai mengerjakan kebutuhan klien atau banyak iterasi.',
+      },
+      estimateLong: { learn: 'Sekitar 20–30 sesi kecil', prototype: 'Sekitar 40–60 sesi kecil', work: '100+ sesi kecil atau beberapa proyek ringan' },
+      reco: {
+        learn: (p) => `Untuk belajar dan proyek pertama, <b>paket ${p.name}</b> adalah titik awal yang ringan — coba satu proyek kecil.`,
+        prototype: (p) => `Untuk prototype, <b>paket ${p.name}</b> paling pas — iterasi satu prototype aktif sampai jadi.`,
+        work: (p) => `Untuk kerja, <b>paket ${p.name}</b> memberi ruang untuk kebutuhan proyek berkelanjutan.`,
+      },
+      badgeReco: 'Paling pas',
+      selected: '● Terpilih',
+      bonus: (v) => `+ Bonus ${v}`,
+      pick: (v) => `Pilih ${v}`,
+      continueTo: (v) => `Lanjutkan ${v}`,
+      credits: (c) => `${c} kredit (nominal + bonus) · ilustratif`,
+      meterLabel: (c) => `Meter saldo: ${c} kredit`,
+      payTo: (v) => `Lanjut bayar ${v}`,
+      levels: { budget: 'Hemat', balanced: 'Seimbang', premium: 'Premium' },
+      uses: { coding: 'Coding', chat: 'Chat & menulis', analysis: 'Analisis dokumen' },
+      perUnit: 'sesi kecil / Rp10.000',
+      rateDetails: 'Detail tarif',
+      ratesPer: 'Tarif per 1 jt token',
+      input: 'Input', output: 'Output', context: 'Konteks',
+      creditsUnit: 'kredit', tokensUnit: 'token',
+      ctx: (c) => c.replace('K', ' rb').replace('M', ' jt'),
+      filterUse: 'Kegunaan', filterLevel: 'Level biaya', filterProvider: 'Penyedia',
+      showing: (a, b) => `Menampilkan ${a} dari ${b} model`,
+      boardStandby: 'Menunggu saldo', boardOn: 'Nyala', boardPick: 'Pilih paket untuk mengisi',
+      copy: 'Salin', copied: 'Tersalin', copiedAnnounce: 'Tersalin ke papan klip',
+      copyKey: 'Salin API key',
+      keyActive: 'Aktif', keyInactive: 'Nonaktif', keyDisable: 'Nonaktifkan', keyEnable: 'Aktifkan',
+      keyAnnounce: (on) => (on ? 'API key Laptop kerja aktif' : 'API key Laptop kerja dinonaktifkan'),
+      reminderAnnounce: (on) => (on ? 'Pengingat saldo menyala' : 'Pengingat saldo dimatikan'),
+      days: ['Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab', 'Min'],
+      daysLong: ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu', 'Minggu'],
+      errContactEmpty: 'Masukkan email atau nomor HP agar bukti pembelian bisa dikirim.',
+      errEmail: 'Format email belum sesuai. Coba cek lagi alamatnya.',
+      errPhone: 'Nomor HP belum sesuai. Gunakan format 08xx atau +628xx.',
+      errPay: 'Pilih satu metode pembayaran untuk melanjutkan.',
+      qrisTitle: 'Tunggu konfirmasi QRIS', qrisBody: 'Pindai kode mock untuk melihat alur pembayaran.', qrisAlt: 'Kode QR contoh (bukan QR asli)',
+      vaTitle: 'Transfer ke virtual account', vaBody: 'Nomor ini dibuat lokal untuk simulasi. Jangan ditransfer.',
+      ewTitle: 'Pilih e-wallet', ewBody: 'Kamu akan diarahkan ke aplikasi e-wallet pada produk nyata.',
+      totalPay: 'Total bayar',
+      successBody: (pkg, contact) => `Paket ${pkg} sudah tercatat di simulasi ini. Bukti pembelian dikirim ke ${contact}.`,
+      menuOpen: 'Buka menu', menuClose: 'Tutup menu',
+      csErrName: 'Nama wajib diisi.', csErrOrg: 'Nama tim atau perusahaan wajib diisi.',
+      csErrContact: 'Masukkan email atau nomor HP agar kami bisa menghubungimu.',
+      csErrSize: 'Pilih ukuran tim.', csErrAgree: 'Centang persetujuan untuk melanjutkan.',
+      csSuccess: (c) => `Tim kami menghubungi kamu di ${c} dalam 1 hari kerja.`,
+      mockLink: 'Halaman ini contoh (mock) pada prototype.',
+      sticker: 'SALDO AI · NYALA SEKARANG · LANJUT BANGUN · ',
+      faq: [
+        ['Kapan saldo aktif?', 'Pada produk nyata, saldo dapat aktif setelah pembayaran dikonfirmasi. Pada prototype ini, tombol konfirmasi hanya menampilkan status sukses simulasi.'],
+        ['Model AI apa saja yang bisa dipakai?', 'Satu saldo bisa dipakai untuk semua model yang tersedia, misalnya Claude, GPT, Gemini, DeepSeek, dan Qwen. Paket apa pun, pilihan modelnya sama. Model hemat membuat saldo lebih awet; model premium lebih kuat untuk tugas rumit.'],
+        ['Apakah saldo bisa kedaluwarsa?', 'Tidak. Saldo dan bonus kredit tidak kedaluwarsa. Saldo tidak bisa diuangkan atau dipindahkan ke akun lain.'],
+        ['Apakah harga sudah termasuk PPN?', 'Ya. Harga paket sudah termasuk PPN. 1 kredit setara Rp1.'],
+        ['Berapa banyak sesi yang bisa digunakan?', 'Tidak ada angka pasti karena panjang prompt, model, dan format output memengaruhi penggunaan. Estimasi di halaman adalah contoh berdasarkan kebutuhan kecil.'],
+        ['Apakah saldo terpotong kalau permintaan gagal?', 'Tidak. Permintaan yang gagal dan tidak menghasilkan jawaban tidak memotong saldo.'],
+        ['Metode apa yang tersedia?', 'Konsep checkout mencakup QRIS, e-wallet, dan virtual account.'],
+        ['Bisakah refund atau batal?', 'Pembayaran yang belum selesai bisa dibatalkan kapan saja. Saldo yang sudah masuk tidak bisa diuangkan. Kebijakan refund lengkap akan ditetapkan sebelum peluncuran; prototype ini tidak memproses transaksi nyata.'],
+        ['Ke mana data prompt saya dikirim?', 'Prompt dikirim ke penyedia model yang kamu pilih untuk diproses, dan bisa diproses di pusat data di luar Indonesia. Kami tidak memakai prompt atau hasilnya untuk melatih model. Pada prototype ini tidak ada data yang dikirim.'],
+        ['Bagaimana kalau API key saya bocor?', 'Nonaktifkan API key itu dari halaman saldo, lalu buat yang baru. Semua pemakaian lewat API key memotong saldomu, jadi simpan seperti kata sandi.'],
+        ['Bisakah membeli untuk tim?', 'Bisa. Untuk tim, kami bantu siapkan invoice atas nama perusahaan, faktur pajak, dan pemantauan pemakaian per anggota. Klik "Konsultasi untuk tim" dan kami hubungi dalam 1 hari kerja.'],
+      ],
+    },
+    en: {
+      locale: 'en-US',
+      intents: { learn: 'Learn', prototype: 'Prototype', work: 'Work' },
+      fit: { learn: 'For learning', prototype: 'For prototypes', work: 'For work' },
+      pkgFor: { learn: 'Learning and trying it for the first time', prototype: 'Building one active prototype', work: 'Freelancers or ongoing projects' },
+      pkgHelper: {
+        learn: 'Good for understanding the flow or finishing one mini task.',
+        prototype: 'Good for iterating on layout, prompts, and quick fixes.',
+        work: 'Good when you start handling client work or lots of iterations.',
+      },
+      estimateLong: { learn: 'About 20–30 small sessions', prototype: 'About 40–60 small sessions', work: '100+ small sessions or a few light projects' },
+      reco: {
+        learn: (p) => `For learning and first projects, the <b>${p.name} package</b> is a light place to start — try one small project.`,
+        prototype: (p) => `For prototypes, the <b>${p.name} package</b> fits best — iterate on one active prototype until it ships.`,
+        work: (p) => `For work, the <b>${p.name} package</b> gives you room for ongoing project needs.`,
+      },
+      badgeReco: 'Best fit',
+      selected: '● Selected',
+      bonus: (v) => `+ ${v} bonus`,
+      pick: (v) => `Choose ${v}`,
+      continueTo: (v) => `Continue with ${v}`,
+      credits: (c) => `${c} credits (price + bonus) · illustrative`,
+      meterLabel: (c) => `Balance meter: ${c} credits`,
+      payTo: (v) => `Continue to pay ${v}`,
+      levels: { budget: 'Budget', balanced: 'Balanced', premium: 'Premium' },
+      uses: { coding: 'Coding', chat: 'Chat & writing', analysis: 'Document analysis' },
+      perUnit: 'small sessions / Rp10,000',
+      rateDetails: 'Rate details',
+      ratesPer: 'Rates per 1M tokens',
+      input: 'Input', output: 'Output', context: 'Context',
+      creditsUnit: 'credits', tokensUnit: 'tokens',
+      ctx: (c) => c,
+      filterUse: 'Use', filterLevel: 'Cost level', filterProvider: 'Provider',
+      showing: (a, b) => `Showing ${a} of ${b} models`,
+      boardStandby: 'Waiting for balance', boardOn: 'Nyala', boardPick: 'Pick a package to fill',
+      copy: 'Copy', copied: 'Copied', copiedAnnounce: 'Copied to clipboard',
+      copyKey: 'Copy API key',
+      keyActive: 'Active', keyInactive: 'Disabled', keyDisable: 'Disable', keyEnable: 'Enable',
+      keyAnnounce: (on) => (on ? 'Work laptop API key enabled' : 'Work laptop API key disabled'),
+      reminderAnnounce: (on) => (on ? 'Balance reminder on' : 'Balance reminder off'),
+      days: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+      daysLong: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'],
+      errContactEmpty: 'Enter your email or phone number so we can send your receipt.',
+      errEmail: "That email doesn't look right. Please check it again.",
+      errPhone: "That phone number doesn't look right. Use 08xx or +628xx.",
+      errPay: 'Choose a payment method to continue.',
+      qrisTitle: 'Waiting for QRIS confirmation', qrisBody: 'Scan the mock code to see the payment flow.', qrisAlt: 'Sample QR code (not a real QR)',
+      vaTitle: 'Transfer to virtual account', vaBody: 'This number is generated locally for the simulation. Do not transfer.',
+      ewTitle: 'Choose an e-wallet', ewBody: 'In the real product you would be sent to the e-wallet app.',
+      totalPay: 'Total',
+      successBody: (pkg, contact) => `Package ${pkg} is recorded in this simulation. Receipt sent to ${contact}.`,
+      menuOpen: 'Open menu', menuClose: 'Close menu',
+      csErrName: 'Name is required.', csErrOrg: 'Team or company name is required.',
+      csErrContact: 'Enter your email or phone number so we can reach you.',
+      csErrSize: 'Choose a team size.', csErrAgree: 'Tick the agreement to continue.',
+      csSuccess: (c) => `Our team will contact you at ${c} within 1 business day.`,
+      mockLink: 'This page is a mock in the prototype.',
+      sticker: 'AI BALANCE · SWITCH ON NOW · KEEP BUILDING · ',
+      faq: [
+        ['When is my balance active?', 'In the real product, your balance becomes active once payment is confirmed. In this prototype, the confirm button only shows a simulated success state.'],
+        ['Which AI models can I use?', 'One balance works with every available model, for example Claude, GPT, Gemini, DeepSeek, and Qwen. Every package gets the same models. Budget models make your balance last longer; premium models are stronger for complex tasks.'],
+        ['Does my balance expire?', "No. Balance and bonus credit never expire. Balance can't be cashed out or moved to another account."],
+        ['Are prices tax-inclusive?', 'Yes. Package prices include VAT (PPN). 1 credit equals Rp1.'],
+        ['How many sessions do I get?', "There's no fixed number: prompt length, model, and output format all affect usage. The estimates on this page are examples based on small tasks."],
+        ['Am I charged if a request fails?', "No. Failed requests that don't return an answer don't use your balance."],
+        ['Which payment methods are available?', 'The checkout concept covers QRIS, e-wallets, and virtual accounts.'],
+        ['Can I get a refund or cancel?', "Unfinished payments can be cancelled anytime. Balance that's already added can't be cashed out. The full refund policy will be set before launch; this prototype processes no real transactions."],
+        ['Where is my prompt data sent?', "Prompts are sent to the model provider you choose for processing, and may be processed in data centers outside Indonesia. We don't use prompts or outputs to train models. In this prototype, no data is sent."],
+        ['What if my API key leaks?', 'Disable that API key from your balance page, then create a new one. All usage through an API key draws from your balance, so keep it like a password.'],
+        ['Can I buy for a team?', 'Yes. For teams we set up invoices in your company\'s name, tax invoices, and per-member usage tracking. Click "Talk to us about your team" and we\'ll reply within 1 business day.'],
+      ],
+    },
   };
 
-  const state = { lang: 'id', menuOpen: false, intent: 'learn', selectedPackage: null, paidPackage: null };
-  const t = (key) => copy[state.lang][key] ?? copy.id[key] ?? key;
-
-  /* ---------- Storage (wrapped: may be unavailable) ---------- */
-  const storage = {
-    get(key) { try { return localStorage.getItem(key); } catch { return null; } },
-    set(key, value) { try { localStorage.setItem(key, value); } catch { /* ignore */ } }
+  /* ---------------------------------------------------------
+     State + helpers
+     --------------------------------------------------------- */
+  const state = {
+    lang: root.lang === 'en' ? 'en' : 'id',
+    intent: 'prototype',
+    selected: 'prototype',
+    hasPicked: false,
+    keyActive: true,
+    catalog: { query: '', use: new Set(), level: new Set(), provider: new Set(), limit: 6 },
+    checkout: { pkg: 'prototype', contact: '', pay: null, wallet: null, apiKey: '' },
   };
+  const t = () => T[state.lang];
+  const fmt = (n) => new Intl.NumberFormat(t().locale).format(n);
+  const rp = (n) => `Rp${fmt(n)}`;
+  const rpShort = (n) => (state.lang === 'en' ? `Rp${n / 1000}K` : `Rp${n / 1000}rb`);
+  const escapeHtml = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 
-  /* ---------- Language ---------- */
-  function setLanguage(lang) {
-    if (!copy[lang]) return;
+  const toastEl = $('#toast');
+  let toastTimer;
+  function toast(msg) {
+    toastEl.textContent = msg;
+    toastEl.classList.add('is-show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => toastEl.classList.remove('is-show'), 2200);
+  }
+
+  /* ---------------------------------------------------------
+     Language
+     --------------------------------------------------------- */
+  function setLang(lang, persist = true) {
     state.lang = lang;
-    document.documentElement.lang = lang;
-
-    document.querySelectorAll('[data-i18n]').forEach((el) => {
-      el.textContent = t(el.dataset.i18n);
-    });
-    document.querySelectorAll('[data-i18n-aria]').forEach((el) => {
-      el.setAttribute('aria-label', t(el.dataset.i18nAria));
-    });
-    document.querySelectorAll('[data-i18n-placeholder]').forEach((el) => {
-      el.setAttribute('placeholder', t(el.dataset.i18nPlaceholder));
-    });
-    document.querySelectorAll('[data-lang]').forEach((btn) => {
-      btn.setAttribute('aria-pressed', String(btn.dataset.lang === lang));
-    });
-
-    syncMenuLabel();
-    renderPrices();
-    renderPackages();
-    renderHeroBalance();
-    renderCheckout();
-    renderModels();
-    renderDashboard();
-    renderConsult();
-    renderChat();
-    storage.set(LANG_KEY, lang);
+    root.lang = lang;
+    if (persist) { try { localStorage.setItem('tn-lang', lang); } catch (e) { /* storage unavailable */ } }
+    $$('.lang-switch__btn').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.lang === lang)));
+    $$('[data-ph-id]').forEach((el) => { el.placeholder = el.dataset[lang === 'en' ? 'phEn' : 'phId']; });
+    $$('[data-aria-id]').forEach((el) => el.setAttribute('aria-label', el.dataset[lang === 'en' ? 'ariaEn' : 'ariaId']));
+    const sticker = $('.sticker textPath');
+    if (sticker) sticker.textContent = t().sticker;
+    renderAll();
+    document.dispatchEvent(new CustomEvent('tn:lang'));
   }
+  $$('.lang-switch__btn').forEach((b) => b.addEventListener('click', () => setLang(b.dataset.lang)));
 
-  /* ---------- Formatting ---------- */
-  const number = (n) => new Intl.NumberFormat(state.lang === 'en' ? 'en-US' : 'id-ID').format(n);
-  const rupiah = (n) => 'Rp' + number(n);
+  /* ---------------------------------------------------------
+     Packages — "The Switch Turns On"
+     --------------------------------------------------------- */
+  const intentTabs = $$('.intent__tab');
+  let shownPrice = null;
 
-  function renderPrices() {
-    document.querySelectorAll('[data-price]').forEach((el) => { el.textContent = rupiah(Number(el.dataset.price)); });
-    document.querySelectorAll('[data-credit]').forEach((el) => { el.textContent = number(Number(el.dataset.credit)); });
-    // Compact form for tight spaces (<640px): Rp100rb / Rp100K
-    document.querySelectorAll('[data-price-short]').forEach((el) => {
-      el.textContent = 'Rp' + number(Number(el.dataset.priceShort) / 1000) + (state.lang === 'en' ? 'K' : 'rb');
-    });
+  function animatePrice(to) {
+    const el = $('#pkgPrice');
+    const from = shownPrice;
+    shownPrice = to;
+    if (from === null || from === to || prefersReducedMotion) { el.textContent = fmt(to); return; }
+    const t0 = performance.now(); const dur = 420;
+    const step = (now) => {
+      const p = Math.min(1, (now - t0) / dur);
+      const e = 1 - Math.pow(1 - p, 3);
+      el.textContent = fmt(Math.round((from + (to - from) * e) / 1000) * 1000);
+      if (p < 1 && shownPrice === to) requestAnimationFrame(step);
+      else if (shownPrice === to) el.textContent = fmt(to);
+    };
+    requestAnimationFrame(step);
   }
-  const fill = (template, values) => template.replace(/\{(\w+)\}/g, (_, k) => values[k] ?? '');
-
-  /* ---------- Hero balance board ----------
-     Off until a package is chosen (docs/hero-and-journey-spec.md → Visual Animation).
-     Call selectPackage(id) from the package picker / checkout. */
-  /* States: off (nothing chosen) → ready (package chosen, not paid yet) → on (paid in checkout).
-     The meter fills on selection (spec), but "Nyala" and "Saldo aktif" only appear after payment. */
-  function renderHeroBalance() {
-    const root = document.querySelector('[data-hero-balance]');
-    if (!root) return;
-    const paid = packages[state.paidPackage];
-    const pkg = paid || packages[state.selectedPackage];
-    const credit = pkg ? pkg.amount + pkg.bonus : 0;
-    const next = paid ? 'on' : pkg ? 'ready' : 'off';
-    const previous = root.dataset.state;
-
-    root.dataset.state = next;
-    root.querySelector('[data-hero-label]').textContent = t(next === 'ready' ? 'boardBalanceReady' : 'boardBalance');
-    root.querySelector('[data-hero-amount]').textContent = rupiah(credit);
-    root.querySelector('[data-hero-status]').textContent = t({ off: 'boardStatusOff', ready: 'boardStatusReady', on: 'boardStatusOn' }[next]);
-    root.querySelector('[data-hero-meter]').style.width = pkg ? `${Math.round((credit / METER_MAX_CREDIT) * 100)}%` : '0%';
-    root.querySelector('[data-hero-estimate]').textContent = pkg
-      ? fill(t('boardEstimateOn'), { estimate: t(`pkgEstimate_${pkg.id}`) })
-      : t('boardEstimateOff');
-    // motion.js listens for this to play the "switch on" moment
-    if (previous !== next) document.dispatchEvent(new CustomEvent('tn:balance', { detail: { state: next, previous, credit } }));
-  }
-
-  /* ---------- Package picker ---------- */
-  const tabs = [...document.querySelectorAll('[role="tab"][data-intent]')];
-  const panel = document.getElementById('paket-panel');
-  const announcer = document.querySelector('[data-pkg-announce]');
 
   function renderPackages() {
-    const reco = packages[state.intent];
+    updatePackageUI(false);
+  }
 
-    tabs.forEach((tab) => {
-      const active = tab.dataset.intent === state.intent;
-      tab.setAttribute('aria-selected', String(active));
-      tab.tabIndex = active ? 0 : -1;
-      if (active) panel?.setAttribute('aria-labelledby', tab.id);
+  function updatePackageUI(animate = true) {
+    const c = t();
+    const reco = state.intent;
+    const sel = PACKAGES[state.selected];
+    // single package sheet
+    $('#pkgFit').textContent = c.fit[sel.id];
+    $('#pkgName').textContent = sel.name;
+    animatePrice(sel.amount);
+    $('#pkgFor').textContent = c.pkgFor[sel.id];
+    $('#pkgEst').textContent = c.estimateLong[sel.id];
+    $('#pkgBonus').textContent = `+${rp(sel.bonus)}`;
+    $('#pkgCredits').textContent = `${fmt(sel.amount + sel.bonus)} ${c.creditsUnit}`;
+    // marker
+    const idx = PACKAGE_ORDER.indexOf(state.intent);
+    $('#intentMarker').style.setProperty('--i', idx);
+    intentTabs.forEach((tab) => {
+      const on = tab.dataset.intent === state.intent;
+      tab.setAttribute('aria-selected', String(on));
+      tab.tabIndex = on ? 0 : -1;
     });
-
-    document.querySelectorAll('[data-package]').forEach((card) => {
-      const id = card.dataset.package;
-      card.dataset.recommended = String(id === reco.id);
-      card.dataset.selected = String(id === state.selectedPackage);
-      // Blue border = the chosen card; before any choice, the recommended one.
-      card.dataset.highlight = String(id === (state.selectedPackage ?? reco.id));
-      const cta = card.querySelector('[data-pkg-cta]');
-      if (cta) {
-        cta.textContent = fill(t(id === state.selectedPackage ? 'pkgChosen' : 'pkgChoose'), { price: rupiah(packages[id].amount) });
-      }
-    });
-
-    const set = (sel, text) => { const el = document.querySelector(sel); if (el) el.textContent = text; };
-    set('[data-reco-title]', fill(t('recoTitle'), { intent: t(`recoIntent_${reco.id}`), name: reco.name, price: rupiah(reco.amount) }));
-    set('[data-reco-body]', t(`reco_${reco.id}`));
-    set('[data-reco-cta]', fill(t(reco.id === state.selectedPackage ? 'pkgChosen' : 'pkgChoose'), { price: rupiah(reco.amount) }));
+    $('#pkgPanel').setAttribute('aria-labelledby', `tab-${state.intent}`);
+    // reco line
+    const line = $('#recoLine');
+    line.innerHTML = `${c.reco[reco](PACKAGES[reco])} ${c.pkgHelper[sel.id]}`;
+    const sheet = $('#pkgSheet');
+    if (animate) { sheet.classList.remove('is-swapping'); void sheet.offsetWidth; sheet.classList.add('is-swapping'); }
+    // meter
+    const credits = sel.amount + sel.bonus;
+    const v = credits / METER_MAX;
+    $('#recoMeter').style.setProperty('--v', v);
+    $('#recoSpark').style.left = `${v * 100}%`;
+    $('#recoCredits').textContent = c.credits(fmt(credits));
+    $('#recoMeterLabel').setAttribute('aria-label', c.meterLabel(fmt(credits)));
+    // CTA
+    $('#pkgContinue').innerHTML = `${c.continueTo(rp(sel.amount))} <span class="btn__icon" aria-hidden="true">→</span>`;
+    $('#pkgContinue').dataset.openCheckout = state.selected;
+    updateBoard();
   }
 
-  function setIntent(id, { focus = false } = {}) {
-    if (!packages[id]) return;
-    state.intent = id;
-    renderPackages();
-    if (focus) tabs.find((tab) => tab.dataset.intent === id)?.focus();
+  function selectIntent(intent, focus = false) {
+    state.intent = intent;
+    state.selected = intent;
+    state.hasPicked = true;
+    updatePackageUI(true);
+    if (focus) $(`#tab-${intent}`).focus();
   }
-
-  function selectPackage(id, { announce = true } = {}) {
-    if (!packages[id]) return;
-    state.selectedPackage = id;
-    renderPackages();
-    renderHeroBalance();
-    renderCheckout();
-    const pkg = packages[id];
-    if (announce && announcer) announcer.textContent = fill(t('pkgAnnounce'), { name: pkg.name, credit: number(pkg.amount + pkg.bonus) });
-  }
-
-  tabs.forEach((tab, index) => {
-    tab.addEventListener('click', () => setIntent(tab.dataset.intent));
-    tab.addEventListener('keydown', (event) => {
-      const last = tabs.length - 1;
-      const target = { ArrowRight: index === last ? 0 : index + 1, ArrowLeft: index === 0 ? last : index - 1, Home: 0, End: last }[event.key];
-      if (target === undefined) return;
-      event.preventDefault();
-      setIntent(tabs[target].dataset.intent, { focus: true });
-    });
-  });
-
-  // Clicking anywhere on a card selects it (without opening checkout); its button selects + opens checkout.
-  document.querySelectorAll('article[data-package]').forEach((card) => {
-    card.addEventListener('click', (event) => {
-      if (event.target.closest('button, a')) return;
-      selectPackage(card.dataset.package);
-    });
-  });
-
-  document.querySelectorAll('[data-choose-package]').forEach((btn) => {
-    btn.addEventListener('click', () => openCheckout(btn.dataset.choosePackage, btn));
-  });
-  document.querySelector('[data-choose-recommended]')?.addEventListener('click', (event) => openCheckout(state.intent, event.currentTarget));
-
-  /** Return focus to an opener only if focus is not already somewhere meaningful
-      (e.g. another overlay such as the chat took it on purpose). */
-  function focusIsFree(dlg) {
-    const a = document.activeElement;
-    return !a || a === document.body || dlg.contains(a);
-  }
-
-  /* ---------- Shared modal behaviour (checkout, catalog, consultation) ----------
-     showModal + focus heading, scroll lock, backdrop click (press must start and end on the backdrop),
-     focus back to the opener when focus is free (menu button if the opener is hidden). */
-  function setupModal(dlg, { focus, onClose } = {}) {
-    let opener = null;
-    let skipFocus = false;
-    let pressedBackdrop = false;
-    const visible = (el) => el && document.contains(el) && el.getClientRects().length > 0;
-    dlg.addEventListener('pointerdown', (e) => { pressedBackdrop = e.target === dlg; });
-    dlg.addEventListener('click', (e) => { if (pressedBackdrop && e.target === dlg) dlg.close(); pressedBackdrop = false; });
-    dlg.addEventListener('close', () => {
-      document.documentElement.classList.remove('overflow-hidden');
-      onClose?.();
-      const target = skipFocus ? null : opener;
-      skipFocus = false;
-      if (!target || !focusIsFree(dlg)) return;
-      if (visible(target)) target.focus();
-      else if (visible(menuButton)) menuButton.focus();
-    });
-    return {
-      open(from = document.activeElement) {
-        if (state.menuOpen) setMenu(false);
-        opener = from;
-        if (!dlg.open) dlg.showModal();
-        document.documentElement.classList.add('overflow-hidden');
-        dlg.querySelector(focus)?.focus();
-      },
-      close({ returnFocus = true } = {}) {
-        skipFocus = !returnFocus;
-        if (dlg.open) dlg.close();
-      }
-    };
-  }
-
-  /* ---------- Checkout (docs/technical-spec.md → Checkout Modal, Form Validation) ---------- */
-  const dialog = document.getElementById('checkout');
-  const form = dialog?.querySelector('form');
-  const contactInput = document.getElementById('co-contact');
-  const PAY_DELAY = 600; // spec: no simulated delay above 600ms
-  const checkout = { step: 'form', method: null, contact: '', apiKey: '', va: '' };
-
-  const randomDigits = (n) => Array.from({ length: n }, () => Math.floor(Math.random() * 10)).join('');
-  const randomHex = (n) => Array.from(crypto.getRandomValues(new Uint8Array(n)), (b) => (b % 16).toString(16)).join('');
-
-  /** Email or Indonesian mobile number. Returns { ok, type, value, error }. */
-  function parseContact(raw) {
-    const value = raw.trim();
-    if (!value) return { ok: false, error: 'errContactEmpty' };
-    if (value.includes('@')) {
-      return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)
-        ? { ok: true, type: 'email', value }
-        : { ok: false, error: 'errEmailInvalid' };
-    }
-    const digits = value.replace(/[\s.-]/g, '');
-    if (!/^(\+62|62|0)8[1-9][0-9]{7,10}$/.test(digits)) return { ok: false, error: 'errPhoneInvalid' };
-    return { ok: true, type: 'phone', value: '+62' + digits.replace(/^(\+62|62|0)/, '') };
-  }
-
-  function setFieldError(name, key) {
-    const message = dialog.querySelector(`[data-error-for="${name}"]`);
-    if (message) {
-      message.textContent = key ? t(key) : '';
-      message.dataset.key = key || '';
-      message.classList.toggle('hidden', !key);
-    }
-    if (name === 'contact') contactInput?.setAttribute('aria-invalid', String(Boolean(key)));
-    if (name === 'method') dialog.querySelectorAll('[name="co-method"]').forEach((r) => r.setAttribute('aria-invalid', String(Boolean(key))));
-  }
-
-  function renderQr() {
-    const svg = dialog.querySelector('[data-co-qr]');
-    if (!svg || svg.childElementCount) return;
-    const size = 25; let seed = 7; const rnd = () => ((seed = (seed * 9301 + 49297) % 233280) / 233280);
-    const finder = (x, y) => `<rect x="${x}" y="${y}" width="7" height="7" fill="currentColor"/><rect x="${x + 1}" y="${y + 1}" width="5" height="5" fill="#fff"/><rect x="${x + 2}" y="${y + 2}" width="3" height="3" fill="currentColor"/>`;
-    const inFinder = (x, y) => (x < 8 && y < 8) || (x > 16 && y < 8) || (x < 8 && y > 16);
-    let cells = '';
-    for (let y = 0; y < size; y++) for (let x = 0; x < size; x++) if (!inFinder(x, y) && rnd() > 0.52) cells += `<rect x="${x}" y="${y}" width="1" height="1" fill="currentColor"/>`;
-    svg.classList.add('text-xl-dark');
-    svg.innerHTML = cells + finder(0, 0) + finder(18, 0) + finder(0, 18);
-  }
-
-  function renderCheckout() {
-    if (!dialog) return;
-    const pkg = packages[state.selectedPackage] || packages[state.intent];
-    const total = rupiah(pkg.amount);
-    const set = (sel, text) => { const el = dialog.querySelector(sel); if (el) el.textContent = text; };
-
-    dialog.querySelectorAll('[name="co-package"]').forEach((r) => { r.checked = r.value === pkg.id; });
-    set('[data-co-nominal]', total);
-    set('[data-co-bonus]', '+' + rupiah(pkg.bonus));
-    set('[data-co-total]', total);
-    set('[data-co-credit-note]', fill(t('coCreditNote'), { credit: number(pkg.amount + pkg.bonus) }));
-    set('[data-co-submit]', fill(t('coSubmit'), { total }));
-    set('[data-co-title]', t('coTitle'));
-
-    const m = checkout.method;
-    if (m) {
-      set('[data-co-pay-title]', t(`coPayTitle_${m}`));
-      set('[data-co-pay-body]', t(`coPayBody_${m}`));
-    }
-    set('[data-co-waiting]', fill(t('coWaiting'), { total }));
-    set('[data-co-va]', checkout.va.replace(/(\d{4})(?=\d)/g, '$1 '));
-    set('[data-co-key]', checkout.apiKey ? checkout.apiKey.slice(0, 8) + '••••••••••••' + checkout.apiKey.slice(-4) : '');
-    set('[data-co-success-body]', fill(t('successBody'), { name: pkg.name, price: total, contact: checkout.contact }));
-    // re-translate visible error messages
-    dialog.querySelectorAll('[data-error-for]').forEach((el) => { if (el.dataset.key) el.textContent = t(el.dataset.key); });
-  }
-
-  function showStep(step) {
-    checkout.step = step;
-    dialog.dataset.step = step;
-    dialog.querySelectorAll('[data-step-panel]').forEach((panel) => { panel.hidden = panel.dataset.stepPanel !== step; });
-    if (step === 'pay') {
-      dialog.querySelectorAll('[data-pay-method]').forEach((el) => { el.hidden = el.dataset.payMethod !== checkout.method; });
-      dialog.querySelector('[data-pay-footer]').hidden = checkout.method === 'ewallet';
-      if (checkout.method === 'qris') renderQr();
-    }
-    renderCheckout();
-    const focusTarget = { form: '#co-title', pay: '#co-pay-title', success: '#co-success-title', failed: '#co-failed-title' }[step];
-    const el = dialog.querySelector(focusTarget);
-    if (el) { if (!el.hasAttribute('tabindex')) el.tabIndex = -1; el.focus(); }
-  }
-
-  const checkoutModal = dialog && setupModal(dialog, {
-    focus: '#co-title',
-    onClose: () => {
-      if (checkout.step !== 'form') { // fresh form next time; keep contact
-        checkout.method = null;
-        dialog.querySelectorAll('[name="co-method"]').forEach((r) => { r.checked = false; });
-      }
-    }
-  });
-
-  function openCheckout(packageId, opener = document.activeElement) {
-    if (!dialog) return;
-    selectPackage(packageId || state.selectedPackage || state.intent, { announce: false });
-    showStep('form');
-    checkoutModal.open(opener);
-  }
-
-  const closeCheckout = (opts) => checkoutModal?.close(opts);
-  dialog?.querySelector('[data-co-close]')?.addEventListener('click', () => closeCheckout());
-
-  dialog?.querySelectorAll('[name="co-package"]').forEach((radio) => {
-    radio.addEventListener('change', () => selectPackage(radio.value, { announce: false }));
-  });
-  dialog?.querySelectorAll('[name="co-method"]').forEach((radio) => {
-    radio.addEventListener('change', () => { checkout.method = radio.value; setFieldError('method', null); });
-  });
-  contactInput?.addEventListener('blur', () => {
-    if (!contactInput.value.trim()) return; // don't scold an untouched field
-    const result = parseContact(contactInput.value);
-    setFieldError('contact', result.ok ? null : result.error);
-  });
-  contactInput?.addEventListener('input', () => {
-    if (contactInput.getAttribute('aria-invalid') === 'true' && parseContact(contactInput.value).ok) setFieldError('contact', null);
-  });
-
-  form?.addEventListener('submit', (event) => {
-    event.preventDefault();
-    const contact = parseContact(contactInput.value);
-    setFieldError('contact', contact.ok ? null : contact.error);
-    setFieldError('method', checkout.method ? null : 'errMethod');
-    if (!contact.ok) { contactInput.focus(); return; }
-    if (!checkout.method) { dialog.querySelector('[name="co-method"]')?.focus(); return; }
-    checkout.contact = contact.value;
-    checkout.va = '8808' + randomDigits(12);
-    showStep('pay');
-  });
-
-  dialog?.querySelectorAll('[data-co-paid]').forEach((btn) => {
-    btn.addEventListener('click', () => {
-      dialog.querySelectorAll('[data-co-paid]').forEach((b) => { b.disabled = true; });
-      dialog.querySelector('[data-co-live]').textContent = t('coChecking');
-      const label = dialog.querySelector('[data-pay-footer] [data-co-paid]');
-      if (label && btn === label) label.textContent = t('coChecking');
-      setTimeout(() => {
-        dialog.querySelectorAll('[data-co-paid]').forEach((b) => { b.disabled = false; });
-        if (label) label.textContent = t('coPaid');
-        checkout.apiKey = 'tn-demo-' + randomHex(24);
-        state.paidPackage = state.selectedPackage;
-        renderHeroBalance();
-        showStep('success');
-        dialog.querySelector('[data-co-live]').textContent = t('successTitle');
-      }, PAY_DELAY);
+  intentTabs.forEach((tab) => {
+    tab.addEventListener('click', () => selectIntent(tab.dataset.intent));
+    tab.addEventListener('keydown', (e) => {
+      const i = PACKAGE_ORDER.indexOf(state.intent);
+      let next = null;
+      if (e.key === 'ArrowRight') next = PACKAGE_ORDER[(i + 1) % 3];
+      if (e.key === 'ArrowLeft') next = PACKAGE_ORDER[(i + 2) % 3];
+      if (e.key === 'Home') next = PACKAGE_ORDER[0];
+      if (e.key === 'End') next = PACKAGE_ORDER[2];
+      if (next) { e.preventDefault(); selectIntent(next, true); }
     });
   });
-  dialog?.querySelector('[data-co-fail]')?.addEventListener('click', () => showStep('failed'));
-  dialog?.querySelectorAll('[data-co-back]').forEach((btn) => btn.addEventListener('click', () => showStep('form')));
-  // "Lihat panduan pasang": close first, then scroll + focus. Closing a modal restores focus to the
-  // previously focused element, which would cancel a normal anchor jump.
-  dialog?.querySelector('[data-co-guide]')?.addEventListener('click', (event) => {
-    event.preventDefault();
-    const id = event.currentTarget.getAttribute('href').slice(1);
-    closeCheckout({ returnFocus: false });
-    setTimeout(() => goToSection(id), 0);
-  });
 
-  function goToSection(id) {
-    const section = document.getElementById(id);
-    if (!section) return;
-    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    if (window.TokenNyalaMotion?.scrollTo) window.TokenNyalaMotion.scrollTo(section);
-    else section.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'start' });
-    const heading = section.querySelector('h2');
-    if (heading) { heading.tabIndex = -1; heading.focus({ preventScroll: true }); }
-    history.replaceState(null, '', '#' + id);
-  }
-
-  /* ---------- Copy to clipboard ---------- */
-  async function copyText(text, button) {
-    try { await navigator.clipboard.writeText(text); } catch { /* clipboard unavailable: text stays selectable */ }
-    const original = button.textContent;
-    button.textContent = t('coCopied');
-    const live = button.closest('dialog')?.querySelector('[aria-live]') ?? document.querySelector('[data-page-live]');
-    if (live) { live.textContent = ''; requestAnimationFrame(() => { live.textContent = t('coCopied'); }); }
-    setTimeout(() => { button.textContent = original; }, 1500);
-  }
-  document.querySelectorAll('[data-copy-target], [data-copy-value]').forEach((btn) => {
-    btn.addEventListener('click', () => {
-      const text = btn.dataset.copyValue ?? document.querySelector(btn.dataset.copyTarget)?.textContent.replace(/\s/g, '') ?? '';
-      copyText(text, btn);
-    });
-  });
-  dialog?.querySelector('[data-copy-key]')?.addEventListener('click', (event) => copyText(checkout.apiKey, event.currentTarget));
-
-  /* ---------- Models: preview cards + catalog ---------- */
-  const modelTemplate = document.getElementById('model-card');
-  const catalogDialog = document.getElementById('catalog');
-  const catalog = { query: '', filters: { use: new Set(), tier: new Set(), provider: new Set() }, visible: 6 };
-  const CATALOG_STEP = 6;
-
-  function compact(n) { // 128000 → "128 rb" / "128K", 1000000 → "1 jt" / "1M"
-    const en = state.lang === 'en';
-    if (n >= 1e6) return number(n / 1e6) + (en ? 'M' : ' jt');
-    return number(n / 1e3) + (en ? 'K' : ' rb');
-  }
-
-  function modelCard(m) {
-    const node = modelTemplate.content.firstElementChild.cloneNode(true);
-    const q = (sel) => node.querySelector(sel);
-    q('[data-m-icon]').src = PROVIDER_ICON[m.provider];
-    q('[data-m-name]').textContent = m.name;
-    q('[data-m-meta]').textContent = [m.provider, ...m.uses.map((u) => t(`use_${u}`))].join(' · ');
-    q('[data-m-tier]').textContent = t(`tier_${m.tier}`);
-    q('[data-m-tier]').className += ' ' + TIER_STYLE[m.tier];
-    q('[data-m-sessions]').textContent = fill(t('modelSessions'), { n: m.per10k });
-    q('[data-m-sessions-unit]').textContent = fill(t('modelSessionsUnit'), { price: rupiah(10000) });
-    q('[data-m-rates-label]').textContent = t('modelRates');
-    q('[data-m-rate-caption]').textContent = t('rateCaption');
-    node.querySelectorAll('[data-m-k]').forEach((el) => { el.textContent = t(el.dataset.mK); });
-    q('[data-m-in]').textContent = fill(t('rateUnit'), { n: number(m.in) });
-    q('[data-m-out]').textContent = fill(t('rateUnit'), { n: number(m.out) });
-    q('[data-m-ctx]').textContent = fill(t('contextUnit'), { n: compact(m.ctx) });
-    return node;
-  }
-
-  function filteredModels() {
-    const q = catalog.query.trim().toLowerCase();
-    const { use, tier, provider } = catalog.filters;
-    return models.filter((m) =>
-      (!q || `${m.name} ${m.provider}`.toLowerCase().includes(q)) &&
-      (!use.size || m.uses.some((u) => use.has(u))) &&
-      (!tier.size || tier.has(m.tier)) &&
-      (!provider.size || provider.has(m.provider)));
-  }
-
-  function renderModels() {
-    const preview = document.querySelector('[data-model-preview]');
-    if (preview && modelTemplate) {
-      preview.replaceChildren(...PREVIEW_MODELS.map((id) => modelCard(models.find((m) => m.id === id))));
-    }
-    renderCatalog();
-  }
-
-  function renderCatalog() {
-    if (!catalogDialog || !modelTemplate) return;
-    const list = catalogDialog.querySelector('[data-cat-list]');
-    const results = filteredModels();
-    const shown = results.slice(0, catalog.visible);
-    list.replaceChildren(...shown.map(modelCard));
-    const count = catalogDialog.querySelector('[data-cat-count]');
-    count.textContent = results.length ? fill(t('catCount'), { a: shown.length, b: results.length }) : '';
-    count.hidden = !results.length;
-    catalogDialog.querySelector('[data-cat-empty]').dataset.show = String(results.length === 0);
-    catalogDialog.querySelector('[data-cat-more]').dataset.show = String(results.length > shown.length);
-
-    const active = Object.values(catalog.filters).reduce((n, set) => n + set.size, 0);
-    const toggleLabel = catalogDialog.querySelector('[data-filter-toggle-label]');
-    if (toggleLabel) toggleLabel.textContent = t('catFilterToggle') + (active ? ` (${active})` : '');
-    catalogDialog.querySelectorAll('[data-filter]').forEach((chip) => {
-      chip.setAttribute('aria-pressed', String(catalog.filters[chip.dataset.filter].has(chip.dataset.value)));
-    });
-  }
-
-  const catalogModal = catalogDialog && setupModal(catalogDialog, { focus: '#cat-title' });
-
-  function openCatalog(opener = document.activeElement) {
-    if (!catalogDialog) return;
-    catalog.visible = CATALOG_STEP;
-    renderCatalog();
-    catalogModal.open(opener);
-  }
-  catalogDialog?.querySelector('[data-cat-close]')?.addEventListener('click', () => catalogModal.close());
-
-  catalogDialog?.querySelector('#cat-search')?.addEventListener('input', (e) => {
-    catalog.query = e.target.value;
-    catalog.visible = CATALOG_STEP;
-    renderCatalog();
-  });
-  catalogDialog?.querySelectorAll('[data-filter]').forEach((chip) => {
-    chip.addEventListener('click', () => {
-      const set = catalog.filters[chip.dataset.filter];
-      set.has(chip.dataset.value) ? set.delete(chip.dataset.value) : set.add(chip.dataset.value);
-      catalog.visible = CATALOG_STEP;
-      renderCatalog();
-    });
-  });
-  catalogDialog?.querySelector('[data-cat-more]')?.addEventListener('click', () => {
-    const firstNew = catalog.visible;
-    catalog.visible += CATALOG_STEP;
-    renderCatalog();
-    // Move focus to the first newly shown card so keyboard users continue from there.
-    catalogDialog.querySelectorAll('[data-cat-list] summary')[firstNew]?.focus();
-  });
-  catalogDialog?.querySelector('[data-cat-clear]')?.addEventListener('click', () => {
-    Object.values(catalog.filters).forEach((set) => set.clear());
-    catalog.query = '';
-    const search = catalogDialog.querySelector('#cat-search');
-    if (search) { search.value = ''; search.focus(); }
-    renderCatalog();
-  });
-  const filterToggle = catalogDialog?.querySelector('[data-filter-toggle]');
-  filterToggle?.addEventListener('click', () => {
-    const panel = document.getElementById('cat-filters');
-    const open = panel.dataset.open !== 'true';
-    panel.dataset.open = String(open);
-    filterToggle.setAttribute('aria-expanded', String(open));
-  });
-  document.querySelectorAll('[data-open-catalog]').forEach((btn) => btn.addEventListener('click', () => openCatalog(btn)));
-
-  /* ---------- Mock dashboard (benefit 4) ----------
-     Daily usage in credits; sums to 32.600 so 115.000 − 32.600 = 82.400 left (Bangun package). */
-  const USAGE_7D = [2600, 3900, 5400, 3300, 7200, 4700, 5500];
-  const dash = { remind: true, keyActive: true };
-
-  function renderDashboard() {
-    const chart = document.querySelector('[data-usage-chart]');
-    const daysRow = document.querySelector('[data-usage-days]');
-    if (chart && daysRow) {
-      const short = t('dashDays').split(',');
-      const long = t('dashDaysLong').split(',');
-      const max = Math.max(...USAGE_7D);
-      chart.replaceChildren(...USAGE_7D.map((v, i) => {
-        const li = document.createElement('li');
-        li.className = 'group/bar relative flex h-full flex-1 items-end';
-        li.dataset.decorOverflow = ''; // value tooltip is intentionally wider than a thin bar
-        const peak = v === max;
-        // Bar: single hue, 4px rounded data-end anchored to the baseline; peak gets the full tone + a direct label.
-        li.innerHTML = `<span class="sr-only">${long[i]}: ${rupiah(v)}</span>
-          <span aria-hidden="true" class="mx-auto block w-full max-w-7 rounded-t-[4px] ${peak ? 'bg-xl-blue' : 'bg-xl-blue/55 group-hover/bar:bg-xl-blue/80'}" style="height:${Math.round((v / max) * 100)}%"></span>
-          <span aria-hidden="true" class="pointer-events-none absolute left-1/2 -translate-x-1/2 whitespace-nowrap rounded-md bg-ink px-1.5 py-0.5 font-mono text-[11px] text-white
-                ${peak ? '' : 'opacity-0 transition-opacity group-hover/bar:opacity-100'}" style="bottom:calc(${Math.round((v / max) * 100)}% + 4px)">${rupiah(v)}</span>`;
-        return li;
-      }));
-      daysRow.replaceChildren(...short.map((d) => {
-        const li = document.createElement('li');
-        li.className = 'flex-1 text-center text-[11px] font-semibold text-muted';
-        li.textContent = d;
-        return li;
-      }));
-    }
-    const sw = document.querySelector('[data-switch]');
-    if (sw) sw.setAttribute('aria-checked', String(dash.remind));
-    const row = document.querySelector('[data-key-row]');
-    if (row) {
-      row.dataset.active = String(dash.keyActive);
-      const status = row.querySelector('[data-key-status]');
-      status.textContent = t(dash.keyActive ? 'dashKeyActive' : 'dashKeyInactive');
-      status.className = 'rounded-full px-2 py-0.5 text-xs font-extrabold ' + (dash.keyActive ? 'bg-xl-teal/15 text-teal-ink' : 'bg-line text-muted');
-      row.querySelector('[data-key-toggle]').textContent = t(dash.keyActive ? 'dashKeyDisable' : 'dashKeyEnable');
-    }
-  }
-
-  const dashLive = (text) => { const el = document.querySelector('[data-dash-live]'); if (el) el.textContent = text; };
-  document.querySelector('[data-switch]')?.addEventListener('click', () => {
-    dash.remind = !dash.remind;
-    renderDashboard();
-    dashLive(t(dash.remind ? 'dashRemindOn' : 'dashRemindOff'));
-  });
-  document.querySelector('[data-key-toggle]')?.addEventListener('click', () => {
-    dash.keyActive = !dash.keyActive;
-    renderDashboard();
-    dashLive(fill(t('dashKeyAnnounce'), { status: t(dash.keyActive ? 'dashKeyActive' : 'dashKeyInactive').toLowerCase() }));
-  });
-
-  /* ---------- Team consultation (G7) ---------- */
-  const consultDialog = document.getElementById('consult');
-  const consultForm = consultDialog?.querySelector('form');
-  const consult = { contact: '' };
-  // Use elements.namedItem: `form.name` would return the form's own name attribute, not the input.
-  const csField = (n) => consultForm?.elements.namedItem(n);
-
-  function setConsultError(name, key) {
-    const msg = consultDialog.querySelector(`[data-cerr="${name}"]`);
-    if (msg) { msg.textContent = key ? t(key) : ''; msg.dataset.key = key || ''; msg.classList.toggle('hidden', !key); }
-    consultForm.querySelectorAll(`[name="${name}"]`).forEach((el) => el.setAttribute('aria-invalid', String(Boolean(key))));
-  }
-
-  function renderConsult() {
-    if (!consultDialog) return;
-    consultDialog.querySelectorAll('[data-cerr]').forEach((el) => { if (el.dataset.key) el.textContent = t(el.dataset.key); });
-    const body = consultDialog.querySelector('[data-cs-success-body]');
-    if (body) body.textContent = fill(t('csSuccessBody'), { contact: consult.contact });
-  }
-
-  function showConsultPanel(name) {
-    consultDialog.querySelectorAll('[data-cs-panel]').forEach((el) => { el.hidden = el.dataset.csPanel !== name; });
-    renderConsult();
-  }
-
-  const consultModal = consultDialog && setupModal(consultDialog, {
-    focus: '#cs-title',
-    onClose: () => { if (!consultDialog.querySelector('[data-cs-panel="success"]').hidden) { consultForm.reset(); updateCount(); showConsultPanel('form'); } }
-  });
-
-  function updateCount() {
-    const n = csField('need').value.length;
-    consultDialog.querySelector('[data-cs-count]').textContent = `${n}/500`;
-    const live = consultDialog.querySelector('[data-cs-count-live]');
-    // Announce only near the limit, not on every keystroke.
-    live.textContent = n >= 450 ? fill(t('csCountLive'), { n }) : '';
-  }
-
-  csField('need')?.addEventListener('input', updateCount);
-  csField('contact')?.addEventListener('blur', () => {
-    if (!csField('contact').value.trim()) return;
-    const r = parseContact(csField('contact').value);
-    setConsultError('contact', r.ok ? null : r.error);
-  });
-  consultForm?.addEventListener('change', (e) => {
-    if (e.target.name === 'teamSize') setConsultError('teamSize', null);
-    if (e.target.name === 'consent' && e.target.checked) setConsultError('consent', null);
-  });
-  consultForm?.addEventListener('submit', (event) => {
-    event.preventDefault();
-    const f = consultForm;
-    const contact = parseContact(csField('contact').value);
-    const checks = [
-      // Same order as on screen, so focus lands on the topmost invalid field.
-      ['name', csField('name').value.trim() ? null : 'errName'],
-      ['org', csField('org').value.trim() ? null : 'errOrg'],
-      ['contact', contact.ok ? null : (contact.error === 'errContactEmpty' ? 'errCsContactEmpty' : contact.error)],
-      ['teamSize', csField('teamSize').value ? null : 'errTeamSize'],
-      ['consent', csField('consent').checked ? null : 'errConsent']
-    ];
-    checks.forEach(([name, key]) => setConsultError(name, key));
-    const firstBad = checks.find(([, key]) => key);
-    if (firstBad) {
-      const el = f.querySelector(`[name="${firstBad[0]}"]`);
-      el?.focus();
+  /* Hero board reacts to the chosen package */
+  function updateBoard() {
+    const c = t();
+    const status = $('[data-board-status]');
+    if (!state.hasPicked) {
+      $('[data-board-balance]').textContent = 'Rp0';
+      $('[data-board-meter]').style.setProperty('--v', 0);
+      $('[data-board-estimate]').textContent = c.boardPick;
+      $('[data-board-status-text]').textContent = c.boardStandby;
+      status.classList.remove('is-on');
       return;
     }
-    consult.contact = contact.value;
-    showConsultPanel('success');
-    consultDialog.querySelector('#cs-success-title')?.focus();
+    const p = PACKAGES[state.selected];
+    $('[data-board-balance]').textContent = rp(p.amount);
+    $('[data-board-meter]').style.setProperty('--v', (p.amount + p.bonus) / METER_MAX);
+    $('[data-board-estimate]').textContent = `≈ ${p.estimate[state.lang]}`;
+    $('[data-board-status-text]').textContent = c.boardOn;
+    status.classList.add('is-on');
+  }
+
+  /* ---------------------------------------------------------
+     Models
+     --------------------------------------------------------- */
+  const LEVEL_BADGE = { budget: 'badge--teal', balanced: 'badge--sky', premium: 'badge--yellow' };
+  // Product logos (Lobe Icons, MIT) keyed by provider
+  const MODEL_LOGOS = { Anthropic: 'claude', OpenAI: 'openai', Google: 'gemini', DeepSeek: 'deepseek', Alibaba: 'qwen' };
+  const modelLogo = (m) => `<img src="assets/models/${MODEL_LOGOS[m.provider]}.svg" alt="" width="24" height="24" loading="lazy" decoding="async">`;
+
+  function modelMeta(m) {
+    const c = t();
+    return `${m.provider} · ${m.uses.map((u) => c.uses[u]).join(' · ')}`;
+  }
+  function rateList(m) {
+    const c = t();
+    return `<dt>${c.input}</dt><dd>${fmt(m.input)} ${c.creditsUnit}</dd>
+            <dt>${c.output}</dt><dd>${fmt(m.output)} ${c.creditsUnit}</dd>
+            <dt>${c.context}</dt><dd>${c.ctx(m.context)} ${c.tokensUnit}</dd>`;
+  }
+
+  function renderModelIndex() {
+    const c = t();
+    $('#modelList').innerHTML = PREVIEW_MODELS.map((id) => MODELS.find((m) => m.id === id)).map((m) => `
+      <details class="mrow" role="listitem">
+        <summary data-cursor="${state.lang === 'en' ? 'Rates' : 'Tarif'}">
+          <span class="mrow__icon" aria-hidden="true">${modelLogo(m)}</span>
+          <span class="mrow__name">${m.name}</span>
+          <span class="mrow__meta">${modelMeta(m)}</span>
+          <span class="badge ${LEVEL_BADGE[m.level]} mrow__badge">${c.levels[m.level]}</span>
+          <span class="mrow__per"><strong>≈ ${m.per10k}</strong><span>${c.perUnit}</span></span>
+          <span class="mrow__toggle">${c.rateDetails}</span>
+        </summary>
+        <div class="mrow__rates">
+          <p>${c.ratesPer}</p>
+          <dl>${rateList(m).replace(/<dt>/g, '<div><dt>').replace(/<\/dd>/g, '</dd></div>')}</dl>
+        </div>
+      </details>`).join('');
+  }
+
+  /* Catalog dialog */
+  const catalog = $('#catalog');
+  function renderCatalogFilters() {
+    const c = t();
+    const group = (key, label, values, names) => `
+      <div class="cat-group" role="group" aria-label="${label}">
+        <span>${label}</span>
+        ${values.map((v) => `<button type="button" class="cat-chip" data-filter="${key}" data-value="${v}" aria-pressed="${state.catalog[key].has(v)}">${names ? names[v] : v}</button>`).join('')}
+      </div>`;
+    $('#catFilters').innerHTML =
+      group('use', c.filterUse, ['coding', 'chat', 'analysis'], c.uses) +
+      group('level', c.filterLevel, ['budget', 'balanced', 'premium'], c.levels) +
+      group('provider', c.filterProvider, ['Anthropic', 'OpenAI', 'Google', 'DeepSeek', 'Alibaba']);
+  }
+  function filteredModels() {
+    const { query, use, level, provider } = state.catalog;
+    const q = query.trim().toLowerCase();
+    return MODELS.filter((m) =>
+      (!q || m.name.toLowerCase().includes(q) || m.provider.toLowerCase().includes(q)) &&
+      (!use.size || m.uses.some((u) => use.has(u))) &&
+      (!level.size || level.has(m.level)) &&
+      (!provider.size || provider.has(m.provider)));
+  }
+  function renderCatalog(focusFrom = -1) {
+    const c = t();
+    const list = filteredModels();
+    const shown = list.slice(0, state.catalog.limit);
+    $('#catGrid').innerHTML = shown.map((m, i) => `
+      <article class="mcard" tabindex="-1" data-i="${i}">
+        <div class="mcard__top">
+          <span class="mrow__icon" aria-hidden="true">${modelLogo(m)}</span>
+          <h3>${m.name}</h3>
+          <span class="badge ${LEVEL_BADGE[m.level]}">${c.levels[m.level]}</span>
+        </div>
+        <p class="mcard__meta">${modelMeta(m)}</p>
+        <p class="mcard__per"><strong>≈ ${m.per10k}</strong> <span>${c.perUnit}</span></p>
+        <details><summary>${c.rateDetails}</summary><p class="mono" style="font-size:.72rem;color:var(--muted);margin-top:4px">${c.ratesPer}</p><dl>${rateList(m)}</dl></details>
+      </article>`).join('');
+    $('#catCount').textContent = c.showing(shown.length, list.length);
+    $('#catEmpty').hidden = list.length > 0;
+    $('#catMore').hidden = list.length <= shown.length;
+    if (focusFrom >= 0) { const el = $(`.mcard[data-i="${focusFrom}"]`); if (el) el.focus(); }
+  }
+  $('#catFilters').addEventListener('click', (e) => {
+    const chip = e.target.closest('.cat-chip');
+    if (!chip) return;
+    const set = state.catalog[chip.dataset.filter];
+    set.has(chip.dataset.value) ? set.delete(chip.dataset.value) : set.add(chip.dataset.value);
+    chip.setAttribute('aria-pressed', String(set.has(chip.dataset.value)));
+    state.catalog.limit = 6;
+    renderCatalog();
   });
-  consultDialog?.querySelectorAll('[data-cs-close]').forEach((b) => b.addEventListener('click', () => consultModal.close()));
-  document.querySelectorAll('[data-open-consult]').forEach((b) => b.addEventListener('click', () => consultModal.open(b)));
+  $('#catSearch').addEventListener('input', (e) => { state.catalog.query = e.target.value; state.catalog.limit = 6; renderCatalog(); });
+  $('#catMore').addEventListener('click', () => { const from = state.catalog.limit; state.catalog.limit += 6; renderCatalog(from); });
+  $('#catClear').addEventListener('click', () => {
+    Object.assign(state.catalog, { query: '', limit: 6 });
+    ['use', 'level', 'provider'].forEach((k) => state.catalog[k].clear());
+    $('#catSearch').value = '';
+    renderCatalogFilters(); renderCatalog();
+  });
+  $('#openCatalog').addEventListener('click', (e) => openDialog(catalog, e.currentTarget, $('#catSearch')));
 
-  /* ---------- Live chat Nala (G4) — scripted, local only ---------- */
-  const chatDialog = document.getElementById('chat');
-  const chatLauncher = document.getElementById('chat-launcher');
-  const chatLog = chatDialog?.querySelector('[data-chat-log]');
-  const chatInput = document.getElementById('chat-input');
-  const chatDesktop = window.matchMedia('(min-width: 48rem)'); // Tailwind md
-  const TYPING_DELAY = 500; // spec: ≤ 600ms
-  // Messages: { from: 'nala'|'sari'|'user'|'system', key?, params?, text?, actions?: [{ key, run }] }
-  const chat = { messages: [], chips: 'main', mode: 'bot', flow: null, typing: null, opener: null };
+  /* ---------------------------------------------------------
+     FAQ
+     --------------------------------------------------------- */
+  function renderFaq() {
+    const openIdx = $$('.faq-item').map((d, i) => (d.open ? i : -1)).filter((i) => i >= 0);
+    $('#faqList').innerHTML = t().faq.map(([q, a], i) => `
+      <details class="faq-item"${openIdx.includes(i) ? ' open' : ''}>
+        <summary><span class="faq-item__n">${String(i + 1).padStart(2, '0')}</span><span>${escapeHtml(q)}</span><span class="faq-item__plus" aria-hidden="true"></span></summary>
+        <p class="faq-item__a">${escapeHtml(a)}</p>
+      </details>`).join('');
+  }
 
-  // Recommendation matrix (docs/technical-spec.md → Live Chat Mock)
+  /* ---------------------------------------------------------
+     Dashboard (benefit 4)
+     --------------------------------------------------------- */
+  function renderDashboard() {
+    const c = t();
+    const max = Math.max(...USAGE);
+    const peak = USAGE.indexOf(max);
+    $('#usageBars').innerHTML = USAGE.map((v, i) => `
+      <div class="bar${i === peak ? ' is-peak' : ''}" style="--h:${(v / max).toFixed(3)}" title="${c.daysLong[i]}: ${rp(v)}">
+        <span class="bar__val">${rp(v)}</span><i></i>
+      </div>`).join('');
+    let days = $('.bars-days');
+    if (!days) { days = document.createElement('div'); days.className = 'bars-days'; days.setAttribute('aria-hidden', 'true'); $('#usageBars').after(days); }
+    days.innerHTML = c.days.map((d) => `<span>${d}</span>`).join('');
+    $('#usageBars').setAttribute('aria-label', state.lang === 'en' ? 'Usage over the last 7 days, highest on Friday' : 'Pemakaian 7 hari terakhir, tertinggi hari Jumat');
+    $('#usageList').innerHTML = USAGE.map((v, i) => `<li>${c.daysLong[i]}: ${rp(v)}</li>`).join('');
+    renderKey();
+  }
+  function renderKey() {
+    const c = t();
+    const badge = $('#keyBadge');
+    badge.textContent = state.keyActive ? c.keyActive : c.keyInactive;
+    badge.className = `badge ${state.keyActive ? 'badge--teal' : 'badge--gray'}`;
+    $('#keyToggle').textContent = state.keyActive ? c.keyDisable : c.keyEnable;
+  }
+  $('#keyToggle').addEventListener('click', () => {
+    state.keyActive = !state.keyActive;
+    renderKey();
+    $('#dashStatus').textContent = t().keyAnnounce(state.keyActive);
+  });
+  $('#reminderSwitch').addEventListener('click', (e) => {
+    const on = e.currentTarget.getAttribute('aria-checked') !== 'true';
+    e.currentTarget.setAttribute('aria-checked', String(on));
+    $('#dashStatus').textContent = t().reminderAnnounce(on);
+  });
+
+  /* Before / after switch */
+  $('#baSwitch').addEventListener('click', (e) => {
+    const on = e.currentTarget.getAttribute('aria-checked') !== 'true';
+    e.currentTarget.setAttribute('aria-checked', String(on));
+    $('#beforeAfter').dataset.state = on ? 'after' : 'before';
+  });
+
+  /* ---------------------------------------------------------
+     Copy buttons
+     --------------------------------------------------------- */
+  async function copyText(text, btn) {
+    try {
+      await navigator.clipboard.writeText(text);
+    } catch (err) {
+      const ta = document.createElement('textarea');
+      ta.value = text; ta.setAttribute('readonly', ''); ta.style.position = 'fixed'; ta.style.opacity = '0';
+      document.body.append(ta); ta.select();
+      try { document.execCommand('copy'); } catch (e2) { /* ignore */ }
+      ta.remove();
+    }
+    const label = $('.copy-label', btn);
+    const c = t();
+    label.textContent = c.copied;
+    $('#copyStatus').textContent = c.copiedAnnounce;
+    setTimeout(() => { label.textContent = btn.id === 'copyKey' ? c.copyKey : c.copy; }, 1800);
+  }
+  function renderCopyLabels() {
+    $$('[data-copy] .copy-label').forEach((l) => { l.textContent = t().copy; });
+    $('#copyKey .copy-label').textContent = t().copyKey;
+  }
+  $$('[data-copy]').forEach((btn) => btn.addEventListener('click', () => copyText(btn.dataset.copy, btn)));
+  $('#copyKey').addEventListener('click', (e) => copyText(state.checkout.apiKey, e.currentTarget));
+
+  $$('[data-mock-link]').forEach((a) => a.addEventListener('click', (e) => { e.preventDefault(); toast(t().mockLink); }));
+
+  /* ---------------------------------------------------------
+     Menu
+     --------------------------------------------------------- */
+  const menuBtn = $('#menuBtn');
+  const menuPanel = $('#menuPanel');
+  const header = $('#siteHeader');
+  function setMenu(open) {
+    menuBtn.setAttribute('aria-expanded', String(open));
+    $('#menuBtnLabel').textContent = open ? t().menuClose : t().menuOpen;
+    header.classList.toggle('menu-open', open);
+    if (open) {
+      menuPanel.hidden = false;
+      requestAnimationFrame(() => menuPanel.classList.add('is-open'));
+      document.body.style.overflow = 'hidden';
+      if (window.__lenis) window.__lenis.stop();
+      $('a', menuPanel).focus();
+    } else {
+      menuPanel.classList.remove('is-open');
+      document.body.style.overflow = '';
+      if (window.__lenis) window.__lenis.start();
+      setTimeout(() => { if (menuBtn.getAttribute('aria-expanded') === 'false') menuPanel.hidden = true; }, prefersReducedMotion ? 0 : 600);
+    }
+  }
+  menuBtn.addEventListener('click', () => setMenu(menuBtn.getAttribute('aria-expanded') !== 'true'));
+  $$('a', menuPanel).forEach((a) => a.addEventListener('click', () => setMenu(false)));
+  menuPanel.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') { setMenu(false); menuBtn.focus(); }
+  });
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && menuBtn.getAttribute('aria-expanded') === 'true') { setMenu(false); menuBtn.focus(); }
+  });
+
+  /* ---------------------------------------------------------
+     Dialog helpers
+     --------------------------------------------------------- */
+  const openers = new Map();
+  function openDialog(dlg, opener, focusEl) {
+    if (menuBtn.getAttribute('aria-expanded') === 'true') setMenu(false);
+    $$('dialog[open]').forEach((d) => d.close());
+    openers.set(dlg, opener || document.activeElement);
+    dlg.showModal();
+    if (window.__lenis) window.__lenis.stop();
+    document.body.style.overflow = 'hidden';
+    (focusEl || $('h2', dlg)).focus();
+  }
+  $$('dialog').forEach((dlg) => {
+    dlg.addEventListener('close', () => {
+      if (window.__lenis) window.__lenis.start();
+      document.body.style.overflow = '';
+      const op = openers.get(dlg);
+      if (op && !dlg.dataset.skipRestore && document.contains(op)) op.focus({ preventScroll: true });
+      delete dlg.dataset.skipRestore;
+    });
+    $$('[data-close]', dlg).forEach((b) => b.addEventListener('click', () => dlg.close()));
+    // backdrop click (ignore drags that start inside)
+    let downInside = false;
+    dlg.addEventListener('pointerdown', (e) => { downInside = e.target !== dlg; });
+    dlg.addEventListener('click', (e) => {
+      if (e.target !== dlg || downInside) return;
+      const r = dlg.getBoundingClientRect();
+      const outside = e.clientX < r.left || e.clientX > r.right || e.clientY < r.top || e.clientY > r.bottom;
+      if (outside) dlg.close();
+    });
+  });
+
+  /* ---------------------------------------------------------
+     Checkout
+     --------------------------------------------------------- */
+  const checkout = $('#checkout');
+  const coForm = $('#coForm');
+  const contactInput = $('#coContact');
+  let contactTouched = false;
+
+  function renderCheckoutPkgs() {
+    const isNarrow = window.innerWidth < 640;
+    $('#coPkgs').innerHTML = PACKAGE_ORDER.map((id) => {
+      const p = PACKAGES[id];
+      return `<label class="co-pkg"><input type="radio" name="pkg" value="${id}"${state.checkout.pkg === id ? ' checked' : ''}><span><b>${p.name}</b><small>${isNarrow ? rpShort(p.amount) : rp(p.amount)}</small></span></label>`;
+    }).join('');
+  }
+  function renderCheckoutSummary() {
+    const p = PACKAGES[state.checkout.pkg];
+    $('[data-co="amount"]').textContent = rp(p.amount);
+    $('[data-co="bonus"]').textContent = `+${rp(p.bonus)}`;
+    $('[data-co="total"]').textContent = rp(p.amount);
+    $('#coSubmit').textContent = t().payTo(rp(p.amount));
+  }
+  $('#coPkgs').addEventListener('change', (e) => {
+    if (e.target.name !== 'pkg') return;
+    state.checkout.pkg = e.target.value;
+    state.selected = e.target.value;
+    state.intent = e.target.value;
+    state.hasPicked = true;
+    updatePackageUI(false);
+    renderCheckoutSummary();
+  });
+
+  function showStep(name) {
+    $$('.co-step', checkout).forEach((s) => { s.hidden = s.dataset.step !== name; });
+    checkout.scrollTop = 0;
+  }
+
+  function openCheckout(pkgId, opener) {
+    state.checkout.pkg = pkgId && PACKAGES[pkgId] ? pkgId : state.selected;
+    if (pkgId && PACKAGES[pkgId]) { state.selected = pkgId; state.intent = pkgId; state.hasPicked = true; updatePackageUI(false); }
+    renderCheckoutPkgs();
+    renderCheckoutSummary();
+    showStep('form');
+    openDialog(checkout, opener, $('#coTitle'));
+  }
+  document.addEventListener('click', (e) => {
+    const btn = e.target.closest('[data-open-checkout]');
+    if (!btn) return;
+    openCheckout(btn.dataset.openCheckout, btn);
+  });
+
+  function validateContact(raw) {
+    const c = t();
+    const value = raw.trim();
+    if (!value) return { ok: false, msg: c.errContactEmpty };
+    if (value.includes('@')) {
+      return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value) ? { ok: true, display: value } : { ok: false, msg: c.errEmail };
+    }
+    const cleaned = value.replace(/[\s.-]/g, '');
+    if (!/^(\+62|62|0)8[1-9][0-9]{7,10}$/.test(cleaned)) return { ok: false, msg: c.errPhone };
+    return { ok: true, display: `+62${cleaned.replace(/^(\+62|62|0)/, '')}` };
+  }
+  function showFieldError(input, errEl, msg) {
+    errEl.textContent = msg || '';
+    if (msg) input.setAttribute('aria-invalid', 'true'); else input.removeAttribute('aria-invalid');
+  }
+  contactInput.addEventListener('blur', () => {
+    if (!contactInput.value.trim() && !contactTouched) return;
+    contactTouched = true;
+    const r = validateContact(contactInput.value);
+    showFieldError(contactInput, $('#coContactErr'), r.ok ? '' : r.msg);
+  });
+  contactInput.addEventListener('input', () => {
+    if (contactInput.getAttribute('aria-invalid') === 'true' && validateContact(contactInput.value).ok) showFieldError(contactInput, $('#coContactErr'), '');
+  });
+  $('#payGrid').addEventListener('change', () => { $('#coPayErr').textContent = ''; });
+
+  coForm.addEventListener('submit', (e) => {
+    e.preventDefault();
+    contactTouched = true;
+    const r = validateContact(contactInput.value);
+    showFieldError(contactInput, $('#coContactErr'), r.ok ? '' : r.msg);
+    const pay = coForm.querySelector('input[name="pay"]:checked');
+    $('#coPayErr').textContent = pay ? '' : t().errPay;
+    if (!r.ok) { contactInput.focus(); return; }
+    if (!pay) { $('input[name="pay"]', coForm).focus(); return; }
+    state.checkout.contact = r.display;
+    state.checkout.pay = pay.value;
+    renderPayStep();
+    showStep('pay');
+    $('#payStep h3').focus();
+  });
+
+  function mockQrSvg(seed) {
+    // decorative pseudo-QR pattern — NOT a scannable code
+    let x = seed;
+    const rnd = () => ((x = (x * 9301 + 49297) % 233280) / 233280);
+    const n = 25; const cell = 8;
+    let rects = '';
+    const finder = (cx, cy) => `<rect x="${cx}" y="${cy}" width="56" height="56" rx="8" fill="#00166A"/><rect x="${cx + 8}" y="${cy + 8}" width="40" height="40" rx="4" fill="#fff"/><rect x="${cx + 16}" y="${cy + 16}" width="24" height="24" rx="3" fill="#00166A"/>`;
+    for (let r = 0; r < n; r++) {
+      for (let col = 0; col < n; col++) {
+        const inFinder = (r < 8 && col < 8) || (r < 8 && col > n - 9) || (r > n - 9 && col < 8);
+        if (!inFinder && rnd() > 0.52) rects += `<rect x="${col * cell}" y="${r * cell}" width="${cell}" height="${cell}" fill="#00166A"/>`;
+      }
+    }
+    return `<svg class="qr" viewBox="0 0 200 200" role="img" aria-label="${t().qrisAlt}">${rects}${finder(0, 0)}${finder(144, 0)}${finder(0, 144)}<rect x="84" y="84" width="32" height="32" rx="8" fill="#FFC93C"/></svg>`;
+  }
+
+  function renderPayStep() {
+    const c = t();
+    const p = PACKAGES[state.checkout.pkg];
+    const amount = `<p class="mono" style="font-size:.78rem;color:var(--muted)">${c.totalPay}</p><p class="pay-step__amount">${rp(p.amount)}</p>`;
+    let html = '';
+    if (state.checkout.pay === 'qris') {
+      html = `<h3 tabindex="-1">${c.qrisTitle}</h3>${mockQrSvg(Date.now() % 9973)}<p>${c.qrisBody}</p>${amount}<span class="badge badge--yellow">${state.lang === 'en' ? 'Sample QR' : 'QR contoh'}</span>`;
+    } else if (state.checkout.pay === 'va') {
+      const va = `8808 ${String(Math.floor(1000 + Math.random() * 9000))} ${String(Math.floor(1000 + Math.random() * 9000))} ${String(Math.floor(1000 + Math.random() * 9000))}`;
+      html = `<h3 tabindex="-1">${c.vaTitle}</h3><p class="va-number">${va}</p><p>${c.vaBody}</p>${amount}`;
+    } else {
+      html = `<h3 tabindex="-1">${c.ewTitle}</h3><div class="wallets" role="group">${['DANA', 'GoPay', 'OVO'].map((w) => `<button type="button" data-wallet="${w}" aria-pressed="${state.checkout.wallet === w}">${w}</button>`).join('')}</div><p>${c.ewBody}</p>${amount}`;
+    }
+    $('#payStep').innerHTML = html;
+  }
+  $('#payStep').addEventListener('click', (e) => {
+    const w = e.target.closest('[data-wallet]');
+    if (!w) return;
+    state.checkout.wallet = w.dataset.wallet;
+    $$('[data-wallet]').forEach((b) => b.setAttribute('aria-pressed', String(b === w)));
+  });
+
+  function makeApiKey() {
+    const hex = () => Math.floor(Math.random() * 16).toString(16);
+    const head = Array.from({ length: 4 }, hex).join('');
+    const tail = Array.from({ length: 24 }, hex).join('');
+    return { full: `tn-demo-${head}${tail}`, masked: `tn-demo-${head}••••••••••••` };
+  }
+
+  $('#coPaid').addEventListener('click', () => {
+    showStep('checking');
+    setTimeout(() => {
+      const key = makeApiKey();
+      state.checkout.apiKey = key.full;
+      const p = PACKAGES[state.checkout.pkg];
+      $('#apiKeyMasked').textContent = key.masked;
+      $('#successBody').textContent = t().successBody(rp(p.amount), state.checkout.contact);
+      $('#copyKey .copy-label').textContent = t().copyKey;
+      const meter = $('#successMeter');
+      meter.style.setProperty('--v', 0);
+      showStep('success');
+      requestAnimationFrame(() => requestAnimationFrame(() => meter.style.setProperty('--v', (p.amount + p.bonus) / METER_MAX)));
+      state.selected = state.checkout.pkg; state.intent = state.checkout.pkg; state.hasPicked = true; updatePackageUI(false);
+      $('#successTitle').focus();
+      burst(checkout.querySelector('.co-success__burst'), 14);
+    }, 600);
+  });
+  $('#coFail').addEventListener('click', () => {
+    showStep('checking');
+    setTimeout(() => { showStep('failed'); $('#failedTitle').focus(); }, 600);
+  });
+  $('#coRetry').addEventListener('click', () => { showStep('form'); $('#coTitle').focus(); });
+  $('#coBack').addEventListener('click', () => { showStep('form'); $('#coTitle').focus(); });
+  $('#seeGuide').addEventListener('click', () => {
+    checkout.dataset.skipRestore = '1';
+    checkout.close();
+    const target = $('#pakai');
+    if (window.__lenis) window.__lenis.scrollTo(target, { offset: -20, immediate: prefersReducedMotion });
+    else target.scrollIntoView({ behavior: prefersReducedMotion ? 'auto' : 'smooth' });
+    setTimeout(() => $('#toolsTitle').focus({ preventScroll: true }), prefersReducedMotion ? 0 : 900);
+  });
+
+  /* ---------------------------------------------------------
+     Consult dialog
+     --------------------------------------------------------- */
+  const consult = $('#consult');
+  $('#openConsult').addEventListener('click', (e) => {
+    $('#csForm').hidden = false; $('#csSuccess').hidden = true;
+    openDialog(consult, e.currentTarget, $('#csTitle'));
+  });
+  $('#csNeeds').addEventListener('input', (e) => {
+    const n = e.target.value.length;
+    const counter = $('#csCount');
+    counter.textContent = `${n}/500`;
+    if (n >= 450) counter.setAttribute('aria-live', 'polite'); else counter.removeAttribute('aria-live');
+  });
+  $('#csForm').addEventListener('submit', (e) => {
+    e.preventDefault();
+    const c = t();
+    const checks = [];
+    const name = $('#csName'); const org = $('#csOrg'); const contact = $('#csContact');
+    const nameMsg = name.value.trim() ? '' : c.csErrName;
+    showFieldError(name, $('#csNameErr'), nameMsg); checks.push([nameMsg, name]);
+    const cr = contact.value.trim() ? validateContact(contact.value) : { ok: false, msg: c.csErrContact };
+    showFieldError(contact, $('#csContactErr'), cr.ok ? '' : cr.msg); checks.push([cr.ok ? '' : cr.msg, contact]);
+    const orgMsg = org.value.trim() ? '' : c.csErrOrg;
+    showFieldError(org, $('#csOrgErr'), orgMsg); checks.push([orgMsg, org]);
+    const size = $('input[name="size"]:checked', consult);
+    $('#csSizeErr').textContent = size ? '' : c.csErrSize; checks.push([size ? '' : c.csErrSize, $('input[name="size"]', consult)]);
+    const agree = $('#csAgree');
+    $('#csAgreeErr').textContent = agree.checked ? '' : c.csErrAgree; checks.push([agree.checked ? '' : c.csErrAgree, agree]);
+    const firstBad = checks.find(([msg]) => msg);
+    if (firstBad) { firstBad[1].focus(); return; }
+    $('#csSuccessBody').textContent = c.csSuccess(cr.display);
+    $('#csForm').hidden = true; $('#csSuccess').hidden = false;
+    $('#csSuccessTitle').focus();
+  });
+
+  /* ---------------------------------------------------------
+     Switches + sparks
+     --------------------------------------------------------- */
+  function burst(container, count = 16) {
+    if (!container || prefersReducedMotion) return;
+    const host = container.closest('.final') ? $('#sparks') : container;
+    const hostRect = host.getBoundingClientRect();
+    const srcRect = container.getBoundingClientRect();
+    const cx = srcRect.left + srcRect.width / 2 - hostRect.left;
+    const cy = srcRect.top + srcRect.height / 2 - hostRect.top;
+    if (getComputedStyle(host).position === 'static') host.style.position = 'relative';
+    for (let i = 0; i < count; i++) {
+      const s = document.createElement('i');
+      s.className = 'spark-dot';
+      Object.assign(s.style, {
+        position: 'absolute', left: `${cx}px`, top: `${cy}px`, width: `${10 + Math.random() * 18}px`, height: 'auto', aspectRatio: '1',
+        background: 'url("assets/spark.svg") center/contain no-repeat', pointerEvents: 'none', zIndex: 5,
+      });
+      host.append(s);
+      const angle = (Math.PI * 2 * i) / count + Math.random() * 0.4;
+      const dist = 80 + Math.random() * 160;
+      s.animate([
+        { transform: 'translate(-50%,-50%) scale(.2) rotate(0deg)', opacity: 1 },
+        { transform: `translate(calc(-50% + ${Math.cos(angle) * dist}px), calc(-50% + ${Math.sin(angle) * dist}px)) scale(1) rotate(${Math.random() * 180}deg)`, opacity: 0 },
+      ], { duration: 700 + Math.random() * 400, easing: 'cubic-bezier(.22,1,.36,1)' }).onfinish = () => s.remove();
+    }
+  }
+
+  $$('[data-hero-switch]').forEach((sw) => sw.addEventListener('click', () => {
+    const on = sw.getAttribute('aria-pressed') !== 'true';
+    $$('[data-hero-switch]').forEach((s) => s.setAttribute('aria-pressed', String(on)));
+    if (on) burst(sw, 12);
+  }));
+
+  const mega = $('#megaSwitch');
+  mega.addEventListener('click', () => {
+    const on = mega.getAttribute('aria-pressed') !== 'true';
+    mega.setAttribute('aria-pressed', String(on));
+    if (on) {
+      burst(mega, 22);
+      setTimeout(() => openCheckout(null, mega), prefersReducedMotion ? 0 : 520);
+    }
+  });
+
+  /* ---------------------------------------------------------
+     Live chat Nala — scripted, local only (no AI, no server)
+     --------------------------------------------------------- */
+  const CHAT_T = {
+    id: {
+      status: 'Asisten otomatis', inputLabel: 'Pesan', placeholder: 'Tulis pertanyaanmu…', placeholderContact: 'Email atau nomor HP',
+      greeting: 'Hai, aku Nala! Mau dibantu pilih paket, atau ada pertanyaan lain?',
+      chips: { pick: 'Bantu pilih paket', howto: 'Cara pakai saldo di tool', models: 'Model apa saja?', pay: 'Metode pembayaran', team: 'Bicara dengan tim',
+        learn: 'Belajar', prototype: 'Prototype', work: 'Kerja', once: 'Sesekali', weekly: 'Tiap minggu', daily: 'Tiap hari', restart: 'Ulangi' },
+      pickQ1: 'Kamu mau pakai AI untuk apa?', pickQ2: 'Seberapa sering kamu akan memakainya?',
+      pickResult: (p) => `Paket ${p.name} (${p.price}) paling pas buatmu, ${p.estimate}.`, pickChoose: 'Pilih paket ini',
+      howto: 'Setelah top up, salin API key, lalu tempel bersama Base URL di pengaturan tool-mu. Mau lihat panduannya?', howtoBtn: 'Lihat panduan',
+      models: 'Satu saldo bisa dipakai di semua model. Model hemat bikin saldo awet, model premium untuk tugas rumit.', modelsBtn: 'Buka katalog model',
+      pay: 'Kamu bisa bayar pakai QRIS, e-wallet, atau virtual account. Di prototype ini semuanya simulasi.',
+      fallback: 'Maaf, aku belum paham. Coba pilih salah satu topik ini, atau bicara dengan tim.',
+      connecting: 'Menghubungkan ke tim…', agentName: 'Sari', agentBadge: 'Tim', agentStatus: 'Sari · Tim TokenNyala',
+      agentGreeting: 'Halo, aku Sari dari tim TokenNyala. Ada yang bisa kubantu soal top up?',
+      agentReply: 'Pesanmu sudah kami terima. Di produk nyata, tim akan membalas di sini dalam beberapa menit.',
+      modeLabel: 'Simulasi, tidak ada agen nyata', hours: 'Tim online Senin–Jumat, 09.00–18.00 WIB',
+      offline: 'Tim sedang offline. Tinggalkan email atau nomor HP, kami balas di jam kerja.',
+      offlineThanks: (c) => `Terima kasih! Kami balas ke ${c} di jam kerja.`,
+      typingNala: 'Nala sedang mengetik…', typingSari: 'Sari sedang mengetik…',
+    },
+    en: {
+      status: 'Automated assistant', inputLabel: 'Message', placeholder: 'Type your question…', placeholderContact: 'Email or phone number',
+      greeting: "Hi, I'm Nala! Want help choosing a package, or got another question?",
+      chips: { pick: 'Help me pick a package', howto: 'Using credit in my tool', models: 'Which models?', pay: 'Payment methods', team: 'Talk to the team',
+        learn: 'Learn', prototype: 'Prototype', work: 'Work', once: 'Occasionally', weekly: 'Every week', daily: 'Every day', restart: 'Start over' },
+      pickQ1: 'What will you use AI for?', pickQ2: 'How often will you use it?',
+      pickResult: (p) => `The ${p.name} package (${p.price}) fits you best, ${p.estimate}.`, pickChoose: 'Choose this package',
+      howto: 'After topping up, copy your API key and paste it with the Base URL into your tool settings. Want to see the guide?', howtoBtn: 'See the guide',
+      models: 'One balance works across every model. Budget models make credit last, premium ones handle hard tasks.', modelsBtn: 'Open model catalog',
+      pay: 'You can pay with QRIS, e-wallets, or virtual accounts. In this prototype everything is simulated.',
+      fallback: "Sorry, I didn't get that. Try one of these topics, or talk to the team.",
+      connecting: 'Connecting you to the team…', agentName: 'Sari', agentBadge: 'Team', agentStatus: 'Sari · TokenNyala team',
+      agentGreeting: "Hi, I'm Sari from the TokenNyala team. How can I help with your top up?",
+      agentReply: 'We got your message. In the real product, the team replies here within a few minutes.',
+      modeLabel: 'Simulation, no real agent', hours: 'Team online Mon–Fri, 09:00–18:00 WIB',
+      offline: "The team is offline. Leave your email or phone number and we'll reply during working hours.",
+      offlineThanks: (c) => `Thanks! We'll reply to ${c} during working hours.`,
+      typingNala: 'Nala is typing…', typingSari: 'Sari is typing…',
+    },
+  };
+  const chatDlg = $('#chat');
+  const chatLauncher = $('#chatLauncher');
+  const chatLog = $('#chatLog');
+  const chatInput = $('#chatInput');
+  const chatDesktop = window.matchMedia('(min-width: 768px)');
+  const CHAT_TYPING_MS = 500;
+  const ct = () => CHAT_T[state.lang];
+  // Messages store keys (not text) so the whole log re-translates on language change.
+  const chat = { messages: [], chips: 'main', mode: 'bot', flow: null, typing: null };
   const PICK_MATRIX = {
     learn: { once: 'learn', weekly: 'learn', daily: 'prototype' },
     prototype: { once: 'learn', weekly: 'prototype', daily: 'work' },
-    work: { once: 'prototype', weekly: 'work', daily: 'work' }
+    work: { once: 'prototype', weekly: 'work', daily: 'work' },
   };
   const CHIP_SETS = {
-    main: ['chipPick', 'chipHowto', 'chipModels', 'chipPay', 'chipTeam'],
-    goal: ['intentLearn', 'intentPrototype', 'intentWork'],
-    freq: ['freqOnce', 'freqWeekly', 'freqDaily'],
-    result: ['chipRestartFlow', 'chipTeam'],
-    none: []
+    main: ['pick', 'howto', 'models', 'pay', 'team'],
+    goal: ['learn', 'prototype', 'work'],
+    freq: ['once', 'weekly', 'daily'],
+    result: ['restart', 'team'],
+    none: [],
   };
   const KEYWORDS = [ // free text → intent (ID + EN)
     ['team', /\b(tim|team|manusia|human|agen|agent|cs|admin|orang)\b/i],
     ['pick', /\b(paket|package|pilih|choose|berapa|how much|rekomendasi|recommend)\b/i],
     ['howto', /\b(api|key|tool|pasang|setup|cursor|cline|continue|cara pakai)\b/i],
     ['models', /\b(model|claude|gpt|gemini|deepseek|qwen)\b/i],
-    ['pay', /\b(bayar|pay|payment|qris|e-?wallet|virtual account|va|dana|gopay|ovo)\b/i]
+    ['pay', /\b(bayar|pay|payment|qris|e-?wallet|virtual account|va|dana|gopay|ovo)\b/i],
   ];
 
   function teamOnline() {
@@ -1420,84 +926,80 @@
     return day >= 1 && day <= 5 && hour >= 9 && hour < 18;
   }
 
-  function bubble(msg) {
-    const li = document.createElement('div');
-    const text = msg.text ?? fill(t(msg.key), Object.fromEntries(Object.entries(msg.params || {}).map(([k, v]) => [k, typeof v === 'function' ? v() : v])));
-    if (msg.from === 'system') {
-      li.className = 'text-center text-xs font-semibold text-muted';
-      li.textContent = text;
-      return li;
-    }
+  function messageText(msg) {
+    if (msg.text != null) return msg.text;
+    const v = ct()[msg.key];
+    return typeof v === 'function' ? v(msg.params ? msg.params() : undefined) : v;
+  }
+
+  function chatBubble(msg) {
+    const row = document.createElement('div');
+    if (msg.from === 'system') { row.className = 'chat__system'; row.textContent = messageText(msg); return row; }
     const mine = msg.from === 'user';
-    li.className = `flex ${mine ? 'justify-end' : 'items-end gap-2'}`;
+    row.className = `chat__msg${mine ? ' chat__msg--user' : ''}`;
     if (!mine) {
-      const av = msg.from === 'sari'
-        ? '<span aria-hidden="true" class="grid size-7 shrink-0 place-items-center rounded-full bg-xl-teal text-xs font-extrabold text-xl-dark">S</span>'
-        : '<img src="assets/tokennyala-mark.svg" alt="" width="28" height="28" class="size-7 shrink-0 rounded-full">';
-      li.insertAdjacentHTML('beforeend', av);
+      row.insertAdjacentHTML('beforeend', msg.from === 'sari'
+        ? '<span class="chat__agent" aria-hidden="true">S</span>'
+        : '<img src="assets/tokennyala-mark.svg" alt="" width="28" height="28">');
     }
     const box = document.createElement('div');
-    box.className = `max-w-[85%] rounded-2xl px-3.5 py-2.5 text-sm leading-relaxed ${mine ? 'rounded-br-md bg-xl-blue text-white' : 'rounded-bl-md border border-line bg-white text-ink'}`;
-    if (msg.from === 'sari') {
-      box.insertAdjacentHTML('beforeend', `<span class="mb-1 flex items-center gap-1.5 text-xs font-extrabold text-xl-dark">${t('agentName')}<span class="rounded-full bg-xl-teal/15 px-1.5 py-px text-[10px] text-teal-ink">${t('agentBadge')}</span></span>`);
-    }
+    box.className = 'chat__bubble';
+    if (msg.from === 'sari') box.insertAdjacentHTML('beforeend', `<span class="chat__tag">${ct().agentName}<small>${ct().agentBadge}</small></span>`);
     const p = document.createElement('p');
-    p.textContent = text;
-    // Screen readers: say who is speaking
-    const who = document.createElement('span');
-    who.className = 'sr-only';
-    who.textContent = mine ? '' : (msg.from === 'sari' ? `${t('agentName')}: ` : `${t('chatName')}: `);
-    p.prepend(who);
+    p.textContent = messageText(msg);
+    if (!mine) {
+      const who = document.createElement('span'); // screen readers: say who is speaking
+      who.className = 'sr-only';
+      who.textContent = `${msg.from === 'sari' ? ct().agentName : 'Nala'}: `;
+      p.prepend(who);
+    }
     box.append(p);
     (msg.actions || []).forEach((a) => {
       const b = document.createElement('button');
       b.type = 'button';
-      b.className = 'btn btn-primary mt-2.5 min-h-11 w-full text-sm';
-      b.textContent = t(a.key);
+      b.className = 'btn btn--primary';
+      b.textContent = ct()[a.key];
       b.addEventListener('click', a.run);
       box.append(b);
     });
-    li.append(box);
-    return li;
+    row.append(box);
+    return row;
   }
 
   function renderChat() {
-    if (!chatDialog) return;
-    const items = chat.messages.map(bubble);
+    const c = ct();
+    const items = chat.messages.map(chatBubble);
     if (chat.typing) {
-      const li = document.createElement('div');
-      li.className = 'text-xs font-semibold text-muted';
-      li.textContent = t(chat.typing);
-      items.push(li);
+      const el = document.createElement('div');
+      el.className = 'chat__typing';
+      el.textContent = c[chat.typing];
+      items.push(el);
     }
     chatLog.replaceChildren(...items);
-
-    const chips = chatDialog.querySelector('[data-chat-chips]');
-    chips.replaceChildren(...CHIP_SETS[chat.chips].map((key) => {
+    $('#chatChips').replaceChildren(...CHIP_SETS[chat.chips].map((key) => {
       const b = document.createElement('button');
       b.type = 'button';
-      b.className = 'inline-flex min-h-11 shrink-0 items-center whitespace-nowrap rounded-full border border-xl-blue/40 bg-white px-3.5 text-sm font-bold text-xl-blue hover:bg-xl-blue hover:text-white';
-      b.textContent = t(key);
-      b.addEventListener('click', () => handleUser(t(key), key));
+      b.className = 'chat__chip';
+      b.textContent = c.chips[key];
+      b.addEventListener('click', () => handleChatInput(c.chips[key], key));
       return b;
     }));
-
     const team = chat.mode === 'team';               // a (simulated) human is in the chat
     const offline = chat.mode.startsWith('offline'); // team unavailable; Nala collects a contact
-    chatDialog.querySelector('[data-chat-title]').textContent = t('chatName');
-    chatDialog.querySelector('[data-chat-status]').textContent = team ? t('agentStatus') : t('chatStatus');
-    const label = chatDialog.querySelector('[data-chat-mode-label]');
-    label.dataset.show = String(team || offline);
-    label.textContent = team ? `${t('teamModeLabel')} · ${t('teamHours')}` : t('teamHours');
-    chatDialog.querySelector('[data-chat-input-label]').textContent = chat.mode === 'offline' ? t('chatPlaceholderContact') : t('chatInputLabel');
-    chatInput.placeholder = chat.mode === 'offline' ? t('chatPlaceholderContact') : t('chatPlaceholder');
-    chatInput.setAttribute('inputmode', chat.mode === 'offline' ? 'email' : 'text');
-    // Scroll last: the chip row above the input changes height, which changes the log's height.
+    const collecting = chat.mode === 'offline';
+    $('#chatStatus').textContent = team ? c.agentStatus : c.status;
+    const mode = $('#chatMode');
+    mode.hidden = !(team || offline);
+    mode.textContent = team ? `${c.modeLabel} · ${c.hours}` : c.hours;
+    $('#chatInputLabel').textContent = collecting ? c.placeholderContact : c.inputLabel;
+    chatInput.placeholder = collecting ? c.placeholderContact : c.placeholder;
+    chatInput.setAttribute('inputmode', collecting ? 'email' : 'text');
+    // Scroll last: the chip row changes height, which changes the log's height.
     requestAnimationFrame(() => { chatLog.scrollTop = chatLog.scrollHeight; });
   }
 
   /** Show a typing line, then append the reply. */
-  function reply(msgs, { chips = 'main', typing = 'typingNala' } = {}) {
+  function chatReply(msgs, { chips = 'main', typing = 'typingNala' } = {}) {
     chat.chips = 'none';
     chat.typing = typing;
     renderChat();
@@ -1506,193 +1008,502 @@
       chat.messages.push(...[].concat(msgs));
       chat.chips = chips;
       renderChat();
-    }, TYPING_DELAY);
+    }, CHAT_TYPING_MS);
   }
 
-  function startPick() { chat.flow = { name: 'pick' }; reply({ from: 'nala', key: 'pickQ1' }, { chips: 'goal' }); }
+  function startPick() { chat.flow = { name: 'pick' }; chatReply({ from: 'nala', key: 'pickQ1' }, { chips: 'goal' }); }
 
   function goTeam() {
     chat.flow = null;
-    chat.messages.push({ from: 'system', key: 'teamConnecting' });
+    chat.messages.push({ from: 'system', key: 'connecting' });
     if (teamOnline()) {
       chat.mode = 'team';
-      reply({ from: 'sari', key: 'agentGreeting' }, { chips: 'none', typing: 'typingSari' });
+      chatReply({ from: 'sari', key: 'agentGreeting' }, { chips: 'none', typing: 'typingSari' });
     } else {
       chat.mode = 'offline';
-      reply({ from: 'nala', key: 'teamOffline' }, { chips: 'none' });
+      chatReply({ from: 'nala', key: 'offline' }, { chips: 'none' });
     }
   }
 
-  const leaveChatThen = (fn) => () => { closeChat({ returnFocus: false }); setTimeout(fn, 0); };
+  const leaveChatThen = (fn) => () => { closeChat(false); setTimeout(fn, 0); };
+  function goToGuide() {
+    const target = $('#pakai');
+    if (window.__lenis) window.__lenis.scrollTo(target, { offset: -20, immediate: prefersReducedMotion });
+    else target.scrollIntoView({ behavior: prefersReducedMotion ? 'auto' : 'smooth' });
+    setTimeout(() => $('#toolsTitle').focus({ preventScroll: true }), prefersReducedMotion ? 0 : 900);
+  }
 
-  function handleUser(text, chipKey = null) {
+  function handleChatInput(text, chipKey = null) {
     const value = text.trim();
     if (!value) return;
     chat.messages.push({ from: 'user', text: value });
 
-    // Offline: the input collects a contact
-    if (chat.mode === 'offline') {
-      const c = parseContact(value);
-      if (!c.ok) { reply({ from: 'nala', key: c.error === 'errContactEmpty' ? 'errCsContactEmpty' : c.error }, { chips: 'none' }); return; }
+    if (chat.mode === 'offline') { // the input collects a contact
+      const res = validateContact(value);
+      if (!res.ok) { chatReply({ from: 'nala', text: res.msg }, { chips: 'none' }); return; }
       chat.mode = 'offline-done';
-      reply({ from: 'nala', key: 'teamOfflineThanks', params: { contact: c.value } }, { chips: 'main' });
+      chatReply({ from: 'nala', key: 'offlineThanks', params: () => res.display }, { chips: 'main' });
       return;
     }
-    if (chat.mode === 'team') { reply({ from: 'sari', key: 'agentReply' }, { chips: 'none', typing: 'typingSari' }); return; }
+    if (chat.mode === 'team') { chatReply({ from: 'sari', key: 'agentReply' }, { chips: 'none', typing: 'typingSari' }); return; }
 
     const has = (re) => re.test(value);
-    // Inside the "Bantu pilih paket" flow
-    if (chat.flow?.name === 'pick' && !chat.flow.goal) {
-      const goal = chipKey === 'intentLearn' || has(/belajar|learn/i) ? 'learn'
-        : chipKey === 'intentPrototype' || has(/proto/i) ? 'prototype'
-        : chipKey === 'intentWork' || has(/kerja|work|klien|client/i) ? 'work' : null;
-      if (goal) { chat.flow.goal = goal; reply({ from: 'nala', key: 'pickQ2' }, { chips: 'freq' }); return; }
-    } else if (chat.flow?.name === 'pick' && chat.flow.goal) {
-      const freq = chipKey === 'freqOnce' || has(/sesekali|jarang|occasion|once/i) ? 'once'
-        : chipKey === 'freqWeekly' || has(/minggu|week/i) ? 'weekly'
-        : chipKey === 'freqDaily' || has(/hari|daily|day/i) ? 'daily' : null;
+    if (chat.flow && chat.flow.name === 'pick' && !chat.flow.goal) {
+      const goal = chipKey === 'learn' || has(/belajar|learn/i) ? 'learn'
+        : chipKey === 'prototype' || has(/proto/i) ? 'prototype'
+        : chipKey === 'work' || has(/kerja|work|klien|client/i) ? 'work' : null;
+      if (goal) { chat.flow.goal = goal; chatReply({ from: 'nala', key: 'pickQ2' }, { chips: 'freq' }); return; }
+    } else if (chat.flow && chat.flow.name === 'pick' && chat.flow.goal) {
+      const freq = chipKey === 'once' || has(/sesekali|jarang|occasion|once/i) ? 'once'
+        : chipKey === 'weekly' || has(/minggu|week/i) ? 'weekly'
+        : chipKey === 'daily' || has(/hari|daily|day/i) ? 'daily' : null;
       if (freq) {
-        const pkg = packages[PICK_MATRIX[chat.flow.goal][freq]];
+        const pkg = PACKAGES[PICK_MATRIX[chat.flow.goal][freq]];
         chat.flow = null;
-        reply({
+        chatReply({
           from: 'nala', key: 'pickResult',
-          params: { name: pkg.name, price: () => rupiah(pkg.amount), estimate: () => t(`pkgEstimate_${pkg.id}`) },
-          actions: [{ key: 'pickChoose', run: leaveChatThen(() => openCheckout(pkg.id, chatLauncher)) }]
+          params: () => ({ name: pkg.name, price: rp(pkg.amount), estimate: pkg.estimate[state.lang] }),
+          actions: [{ key: 'pickChoose', run: leaveChatThen(() => openCheckout(pkg.id, chatLauncher)) }],
         }, { chips: 'result' });
         return;
       }
     }
 
-    const intent = { chipPick: 'pick', chipRestartFlow: 'pick', chipHowto: 'howto', chipModels: 'models', chipPay: 'pay', chipTeam: 'team' }[chipKey]
-      ?? KEYWORDS.find(([, re]) => has(re))?.[0];
+    const intent = { pick: 'pick', restart: 'pick', howto: 'howto', models: 'models', pay: 'pay', team: 'team' }[chipKey]
+      ?? (KEYWORDS.find(([, re]) => has(re)) || [])[0];
     chat.flow = null;
     if (intent === 'pick') return startPick();
     if (intent === 'team') return goTeam();
-    if (intent === 'howto') return reply({ from: 'nala', key: 'ansHowto', actions: [{ key: 'successGuide', run: leaveChatThen(() => goToSection('pakai')) }] });
-    if (intent === 'models') return reply({ from: 'nala', key: 'ansModels', actions: [{ key: 'ansModelsBtn', run: leaveChatThen(() => openCatalog(chatLauncher)) }] });
-    if (intent === 'pay') return reply({ from: 'nala', key: 'ansPay' });
-    reply({ from: 'nala', key: 'ansFallback' });
+    if (intent === 'howto') return chatReply({ from: 'nala', key: 'howto', actions: [{ key: 'howtoBtn', run: leaveChatThen(goToGuide) }] });
+    if (intent === 'models') return chatReply({ from: 'nala', key: 'models', actions: [{ key: 'modelsBtn', run: leaveChatThen(() => openDialog(catalog, chatLauncher, $('#catSearch'))) }] });
+    if (intent === 'pay') return chatReply({ from: 'nala', key: 'pay' });
+    return chatReply({ from: 'nala', key: 'fallback' });
   }
 
   function resetChat() {
-    chat.messages = [{ from: 'nala', key: 'chatGreeting' }];
-    chat.chips = 'main'; chat.mode = 'bot'; chat.flow = null; chat.typing = null;
+    Object.assign(chat, { messages: [{ from: 'nala', key: 'greeting' }], chips: 'main', mode: 'bot', flow: null, typing: null });
     renderChat();
   }
 
-  function openChat(opener = document.activeElement) {
-    if (!chatDialog) return;
-    // Only one overlay at a time: close any open modal first (checkout keeps its package choice).
-    document.querySelectorAll('dialog[open]').forEach((d) => { if (d !== chatDialog) d.close(); });
-    if (state.menuOpen) setMenu(false);
-    chat.opener = opener;
+  function openChat() {
+    if (menuBtn.getAttribute('aria-expanded') === 'true') setMenu(false);
+    $$('dialog[open]').forEach((d) => { if (d !== chatDlg) d.close(); });
     if (!chat.messages.length) resetChat();
-    if (chatDesktop.matches) chatDialog.show(); // non-modal panel: page stays usable
-    else { chatDialog.showModal(); document.documentElement.classList.add('overflow-hidden'); }
-    chatLauncher?.setAttribute('aria-expanded', 'true');
+    if (chatDesktop.matches) chatDlg.show(); // non-modal panel: the page stays usable
+    else {
+      chatDlg.showModal();
+      if (window.__lenis) window.__lenis.stop();
+      document.body.style.overflow = 'hidden';
+    }
+    chatLauncher.setAttribute('aria-expanded', 'true');
     renderChat();
-    chatInput?.focus();
+    chatInput.focus({ preventScroll: true });
   }
-
-  function closeChat({ returnFocus = true } = {}) {
-    if (!chatDialog?.open) return;
-    chat.skipFocusReturn = !returnFocus;
-    chatDialog.close();
+  function closeChat(returnFocus = true) {
+    if (!chatDlg.open) return;
+    chat.skipFocus = !returnFocus;
+    chatDlg.close();
   }
-
-  chatDialog?.addEventListener('close', () => {
-    document.documentElement.classList.remove('overflow-hidden');
-    chatLauncher?.setAttribute('aria-expanded', 'false');
-    if (!chat.skipFocusReturn && focusIsFree(chatDialog)) chatLauncher?.focus();
-    chat.skipFocusReturn = false;
+  chatDlg.addEventListener('close', () => {
+    chatLauncher.setAttribute('aria-expanded', 'false');
+    if (!chat.skipFocus && !document.querySelector('dialog[open]')) chatLauncher.focus({ preventScroll: true });
+    chat.skipFocus = false;
   });
-  // Escape: native for the modal (mobile); handle it for the non-modal panel (desktop).
+  // Escape: native for the modal (phones); handled here for the non-modal panel.
   document.addEventListener('keydown', (e) => {
-    if (e.key !== 'Escape' || !chatDialog?.open || chatDialog.matches(':modal')) return;
-    if (document.querySelector('dialog:modal') || state.menuOpen) return; // let the topmost layer handle it
+    if (e.key !== 'Escape' || !chatDlg.open || chatDlg.matches(':modal') || document.querySelector('dialog:modal')) return;
     e.preventDefault();
     closeChat();
   });
-  chatDialog?.querySelector('[data-chat-close]')?.addEventListener('click', () => closeChat());
-  chatDialog?.querySelector('[data-chat-restart]')?.addEventListener('click', () => { resetChat(); chatInput.focus(); });
-  chatDialog?.querySelector('[data-chat-form]')?.addEventListener('submit', (e) => {
+  $('#chatClose').addEventListener('click', () => closeChat());
+  $('#chatRestart').addEventListener('click', () => { resetChat(); chatInput.focus(); });
+  $('#chatForm').addEventListener('submit', (e) => {
     e.preventDefault();
     const v = chatInput.value;
     chatInput.value = '';
-    handleUser(v);
+    handleChatInput(v);
   });
-  // Switching between phone and desktop layouts while open: reopen in the right mode.
-  chatDesktop.addEventListener('change', () => { if (chatDialog?.open) { chat.skipFocusReturn = true; chatDialog.close(); openChat(chat.opener); } });
-  document.querySelectorAll('[data-open-chat]').forEach((b) => b.addEventListener('click', () => openChat(b)));
+  // Crossing the phone/desktop breakpoint while open: reopen in the right mode.
+  chatDesktop.addEventListener('change', () => { if (chatDlg.open) { chat.skipFocus = true; chatDlg.close(); openChat(); } });
+  $$('[data-open-chat]').forEach((b) => b.addEventListener('click', openChat));
+  document.addEventListener('tn:lang', () => { if (chat.messages.length) renderChat(); });
 
-  // On phones the floating launcher covers the hero board, so it appears once the hero scrolls away.
-  // FAQ ("Tanya Nala") and checkout keep their own entry points meanwhile.
-  const hero = document.querySelector('section[aria-labelledby="hero-title"]');
-  if (chatLauncher && hero && 'IntersectionObserver' in window) {
-    const phone = window.matchMedia('(max-width: 39.99rem)'); // below Tailwind sm
+  // Phones: the launcher would cover the hero board, so it appears once the hero scrolls away.
+  const heroEl = $('#top') || $('.hero');
+  if (heroEl && 'IntersectionObserver' in window) {
+    const phone = window.matchMedia('(max-width: 639px)');
     let heroVisible = true;
     const syncLauncher = () => {
       const hide = phone.matches && heroVisible;
-      chatLauncher.dataset.offscreen = String(hide);
+      chatLauncher.classList.toggle('is-away', hide);
       chatLauncher.inert = hide;
     };
-    new IntersectionObserver(([entry]) => { heroVisible = entry.intersectionRatio > 0.35; syncLauncher(); }, { threshold: [0, 0.35, 1] }).observe(hero);
+    new IntersectionObserver(([entry]) => { heroVisible = entry.intersectionRatio > 0.35; syncLauncher(); }, { threshold: [0, 0.35, 1] }).observe(heroEl);
     phone.addEventListener('change', syncLauncher);
   }
 
-  document.querySelectorAll('[data-open-checkout]').forEach((btn) => {
-    btn.addEventListener('click', () => openCheckout(null, btn));
-  });
+  /* ---------------------------------------------------------
+     Render everything (also on language change)
+     --------------------------------------------------------- */
+  function renderAll() {
+    renderPackages();
+    renderModelIndex();
+    renderCatalogFilters();
+    renderCatalog();
+    renderFaq();
+    renderDashboard();
+    renderCopyLabels();
+    $('#menuBtnLabel').textContent = menuBtn.getAttribute('aria-expanded') === 'true' ? t().menuClose : t().menuOpen;
+    if (checkout.open) {
+      renderCheckoutPkgs(); renderCheckoutSummary();
+      const step = $$('.co-step', checkout).find((s) => !s.hidden);
+      if (step && step.dataset.step === 'pay') renderPayStep();
+      if (step && step.dataset.step === 'success') $('#successBody').textContent = t().successBody(rp(PACKAGES[state.checkout.pkg].amount), state.checkout.contact);
+    }
+  }
+  setLang(state.lang, false);
+  window.addEventListener('resize', () => { if (checkout.open) renderCheckoutPkgs(); });
 
-  // Exposed for upcoming sections and manual testing in the console.
-  window.TokenNyala = { selectPackage, setIntent, openCheckout, openCatalog, openConsult: (from) => consultModal?.open(from), openChat, packages, models };
+  /* ---------------------------------------------------------
+     Header: hide on scroll down, colour by section underneath
+     --------------------------------------------------------- */
+  let lastY = window.scrollY;
+  let ticking = false;
+  const darkSel = '.sheet--blue, .sheet--dark, .final, .footer, .stall, .stack-card--white';
+  function onScroll() {
+    const y = window.scrollY;
+    header.classList.toggle('is-scrolled', y > 20);
+    if (!header.classList.contains('menu-open')) {
+      header.classList.toggle('is-hidden', y > lastY && y > 400);
+    }
+    lastY = y;
+    const probeY = 36;
+    const els = document.elementsFromPoint(window.innerWidth / 2, probeY);
+    const under = els.find((el) => !header.contains(el) && !el.closest('.cursor'));
+    header.classList.toggle('on-dark', !!(under && under.closest(darkSel)));
+    ticking = false;
+  }
+  window.addEventListener('scroll', () => { if (!ticking) { ticking = true; requestAnimationFrame(onScroll); } }, { passive: true });
+  onScroll();
 
-  /* ---------- Mobile menu ---------- */
-  const menuButton = document.getElementById('menu-button');
-  const menu = document.getElementById('mobile-menu');
-  const desktopQuery = window.matchMedia('(min-width: 64rem)'); // Tailwind lg
-
-  function syncMenuLabel() {
-    if (!menuButton) return;
-    menuButton.setAttribute('aria-label', state.menuOpen ? t('menuClose') : t('menuOpen'));
+  /* ---------------------------------------------------------
+     Typing prompt in hero board
+     --------------------------------------------------------- */
+  const PROMPTS = {
+    id: ['Bikin hero lebih hangat dan simpel', 'Tambah form pendaftaran event', 'Rapikan tampilan mobile'],
+    en: ['Make the hero warmer and simpler', 'Add an event sign-up form', 'Polish the mobile view'],
+  };
+  const typeEl = $('#typePrompt');
+  if (prefersReducedMotion) {
+    typeEl.textContent = PROMPTS[state.lang][0];
+    document.addEventListener('tn:lang', () => { typeEl.textContent = PROMPTS[state.lang][0]; });
+  } else {
+    let pi = 0; let ci = 0; let deleting = false;
+    const tick = () => {
+      const list = PROMPTS[state.lang];
+      const text = list[pi % list.length];
+      if (!deleting) {
+        ci++;
+        typeEl.textContent = text.slice(0, ci);
+        if (ci >= text.length) { deleting = true; return setTimeout(tick, 2200); }
+        return setTimeout(tick, 45 + Math.random() * 50);
+      }
+      ci--;
+      typeEl.textContent = text.slice(0, Math.max(ci, 0));
+      if (ci <= 0) { deleting = false; pi++; return setTimeout(tick, 350); }
+      return setTimeout(tick, 22);
+    };
+    typeEl.textContent = '';
+    setTimeout(tick, 1200);
   }
 
-  function setMenu(open, { returnFocus = false } = {}) {
-    if (!menuButton || !menu) return;
-    state.menuOpen = open;
-    menu.hidden = !open;
-    menuButton.setAttribute('aria-expanded', String(open));
-    menuButton.querySelector('.menu-icon-open')?.classList.toggle('hidden', open);
-    menuButton.querySelector('.menu-icon-close')?.classList.toggle('hidden', !open);
-    syncMenuLabel();
-    if (!open && returnFocus) menuButton.focus();
+  /* ---------------------------------------------------------
+     Custom cursor + magnetic buttons (fine pointers only)
+     --------------------------------------------------------- */
+  if (finePointer && !prefersReducedMotion) {
+    root.classList.add('has-cursor');
+    const cursor = $('#cursor');
+    const label = $('#cursorLabel');
+    let mx = -100; let my = -100; let cx = -100; let cy = -100;
+    window.addEventListener('pointermove', (e) => { mx = e.clientX; my = e.clientY; }, { passive: true });
+    const loop = () => {
+      cx += (mx - cx) * 0.22; cy += (my - cy) * 0.22;
+      cursor.style.transform = `translate3d(${cx}px, ${cy}px, 0)`;
+      requestAnimationFrame(loop);
+    };
+    loop();
+    document.addEventListener('pointerover', (e) => {
+      const target = e.target.closest('[data-cursor]');
+      if (target) {
+        label.textContent = target.dataset.cursor;
+        cursor.classList.add('is-active');
+      } else {
+        cursor.classList.remove('is-active');
+      }
+      cursor.classList.toggle('is-hidden', !!e.target.closest('dialog, input, textarea'));
+    });
+    document.addEventListener('pointerleave', () => cursor.classList.add('is-hidden'));
+    document.addEventListener('pointerenter', () => cursor.classList.remove('is-hidden'));
+
+    $$('.magnetic').forEach((el) => {
+      el.addEventListener('pointermove', (e) => {
+        const r = el.getBoundingClientRect();
+        const dx = (e.clientX - (r.left + r.width / 2)) * 0.22;
+        const dy = (e.clientY - (r.top + r.height / 2)) * 0.32;
+        el.style.transform = `translate(${dx}px, ${dy}px)`;
+      });
+      el.addEventListener('pointerleave', () => { el.style.transform = ''; });
+    });
   }
 
-  menuButton?.addEventListener('click', () => setMenu(!state.menuOpen));
+  /* ---------------------------------------------------------
+     Stall story: build to 80% → out of credit → switch on → 100%
+     --------------------------------------------------------- */
+  const stall = $('#stall');
+  let stallWasOn = true;
+  function renderStall(p) {
+    const fill = p < 0.5 ? (p / 0.5) * 0.8 : p < 0.74 ? 0.8 : 0.8 + Math.min(1, (p - 0.74) / 0.2) * 0.2;
+    const phase = p < 0.52 ? 'build' : p < 0.7 ? 'stall' : 'on';
+    if (stall.dataset.phase !== phase) stall.dataset.phase = phase;
+    $('#stallFill').style.setProperty('--f', fill.toFixed(4));
+    $('#stallPct').textContent = Math.round(fill * 100);
+    $$('#stallTasks li').forEach((li) => li.classList.toggle('is-done', fill + 0.001 >= parseFloat(li.dataset.at)));
+    const on = phase === 'on';
+    $('#stallSwitch').classList.toggle('big-switch--on', on);
+    if (on && !stallWasOn) burst($('#stallSwitch'), 12);
+    stallWasOn = on;
+  }
+  renderStall(1); // complete story at rest (no JS motion / reduced motion)
 
-  menu?.addEventListener('click', (event) => {
-    if (event.target.closest('a')) setMenu(false);
-  });
+  /* ---------------------------------------------------------
+     "Cara kerja" horizontal scroller: drag, wheel, buttons, rail
+     --------------------------------------------------------- */
+  (function initStepsScroller() {
+    const track = $('#stepsTrack');
+    const prev = $('#stepsPrev');
+    const next = $('#stepsNext');
+    const rail = $('#stepsRail');
+    const maxScroll = () => track.scrollWidth - track.clientWidth;
+    const update = () => {
+      const max = maxScroll();
+      const p = max > 0 ? track.scrollLeft / max : 0;
+      rail.style.setProperty('--p', p.toFixed(3));
+      prev.disabled = track.scrollLeft <= 4;
+      next.disabled = track.scrollLeft >= max - 4;
+    };
+    const stepWidth = () => { const s = $('.step', track); return s ? s.getBoundingClientRect().width + parseFloat(getComputedStyle(track).columnGap || 0) : track.clientWidth; };
+    const go = (dir) => track.scrollBy({ left: dir * stepWidth(), behavior: prefersReducedMotion ? 'auto' : 'smooth' });
+    prev.addEventListener('click', () => go(-1));
+    next.addEventListener('click', () => go(1));
+    track.addEventListener('scroll', update, { passive: true });
+    window.addEventListener('resize', update);
+    track.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowRight') { e.preventDefault(); go(1); }
+      if (e.key === 'ArrowLeft') { e.preventDefault(); go(-1); }
+    });
+    // Horizontal wheel / trackpad: keep it inside the track (don't let smooth-scroll swallow it)
+    track.addEventListener('wheel', (e) => {
+      if (Math.abs(e.deltaX) > Math.abs(e.deltaY) || e.shiftKey) {
+        e.stopPropagation();
+        if (e.shiftKey && !e.deltaX) { e.preventDefault(); track.scrollLeft += e.deltaY; }
+      }
+    }, { passive: false });
+    // Mouse drag (touch already swipes natively)
+    let startX = 0; let startLeft = 0; let dragging = false; let moved = false;
+    track.addEventListener('pointerdown', (e) => {
+      if (e.pointerType !== 'mouse' || e.button !== 0) return;
+      dragging = true; moved = false; startX = e.clientX; startLeft = track.scrollLeft;
+    });
+    window.addEventListener('pointermove', (e) => {
+      if (!dragging) return;
+      const dx = e.clientX - startX;
+      if (!moved && Math.abs(dx) > 4) { moved = true; track.classList.add('is-dragging'); }
+      if (moved) { e.preventDefault(); track.scrollLeft = startLeft - dx; }
+    });
+    const endDrag = () => {
+      if (!dragging) return;
+      dragging = false;
+      if (!moved) return;
+      const before = track.scrollLeft;
+      track.classList.remove('is-dragging');
+      // re-enabling snap jumps instantly; animate from where the drag ended instead
+      track.scrollLeft = before;
+      const w = stepWidth();
+      const dx = startLeft - before;
+      let idx = Math.round(before / w);
+      if (Math.abs(dx) > 60) idx = dx < 0 ? Math.floor(startLeft / w + 0.01) + 1 : Math.ceil(startLeft / w - 0.01) - 1;
+      const target = Math.max(0, Math.min(maxScroll(), idx * w));
+      track.scrollTo({ left: target, behavior: prefersReducedMotion ? 'auto' : 'smooth' });
+    };
+    window.addEventListener('pointerup', endDrag);
+    window.addEventListener('pointercancel', endDrag);
+    track.addEventListener('click', (e) => { if (moved) { e.preventDefault(); e.stopPropagation(); moved = false; } }, true);
+    track.addEventListener('dragstart', (e) => e.preventDefault());
+    update();
+  })();
 
-  document.addEventListener('keydown', (event) => {
-    if (event.key === 'Escape' && state.menuOpen) setMenu(false, { returnFocus: true });
-  });
+  /* ---------------------------------------------------------
+     Preloader + scroll motion (GSAP + ScrollTrigger + Lenis)
+     --------------------------------------------------------- */
+  const loader = $('#loader');
+  function runLoader() {
+    return new Promise((resolve) => {
+      if (!root.classList.contains('is-loading')) return resolve();
+      try { sessionStorage.setItem('tn-loaded', '1'); } catch (e) { /* ignore */ }
+      const countEl = $('#loaderCount');
+      const start = performance.now();
+      const dur = 1100;
+      const step = (now) => {
+        const p = Math.min(1, (now - start) / dur);
+        const eased = 1 - Math.pow(1 - p, 3);
+        countEl.textContent = String(Math.round(eased * 100)).padStart(3, '0');
+        if (p < 1) return requestAnimationFrame(step);
+        loader.classList.add('is-on');
+        setTimeout(() => {
+          const finish = () => { root.classList.remove('is-loading'); loader.remove(); resolve(); };
+          if (window.gsap) window.gsap.to(loader, { yPercent: -100, duration: 0.8, ease: 'expo.inOut', onComplete: finish });
+          else finish();
+        }, 420);
+      };
+      requestAnimationFrame(step);
+    });
+  }
 
-  desktopQuery.addEventListener('change', (event) => {
-    if (event.matches && state.menuOpen) setMenu(false);
-  });
+  function initMotion() {
+    const gsap = window.gsap;
+    const ScrollTrigger = window.ScrollTrigger;
+    if (!gsap || !ScrollTrigger || prefersReducedMotion) return false;
+    gsap.registerPlugin(ScrollTrigger);
+    root.classList.add('has-gsap');
 
-  /* ---------- Language buttons ---------- */
-  document.querySelectorAll('[data-lang]').forEach((btn) => {
-    btn.addEventListener('click', () => setLanguage(btn.dataset.lang));
-  });
+    // Smooth scroll
+    if (window.Lenis) {
+      const lenis = new window.Lenis({ duration: 1.15, smoothWheel: true });
+      window.__lenis = lenis;
+      lenis.on('scroll', ScrollTrigger.update);
+      gsap.ticker.add((time) => lenis.raf(time * 1000));
+      gsap.ticker.lagSmoothing(0);
+      $$('a[href^="#"]').forEach((a) => a.addEventListener('click', (e) => {
+        const id = a.getAttribute('href');
+        if (id.length < 2) return;
+        const target = $(id);
+        if (!target) return;
+        e.preventDefault();
+        lenis.scrollTo(target, { offset: id === '#top' ? 0 : -10 });
+      }));
+    }
 
-  /* ---------- Placeholder legal links ---------- */
-  document.querySelectorAll('[data-mock-link]').forEach((link) => {
-    link.addEventListener('click', (event) => event.preventDefault());
-  });
+    // Split [data-split] headings into words (per language span)
+    $$('[data-split] > [data-l]').forEach((span) => {
+      const walker = [];
+      span.childNodes.forEach((node) => walker.push(node));
+      span.innerHTML = '';
+      walker.forEach((node) => {
+        if (node.nodeType === 3) {
+          node.textContent.split(/(\s+)/).forEach((part) => {
+            if (!part) return;
+            if (/^\s+$/.test(part)) { span.append(document.createTextNode(' ')); return; }
+            const w = document.createElement('span'); w.className = 'split-word';
+            const inner = document.createElement('span'); inner.textContent = part;
+            w.append(inner); span.append(w);
+          });
+        } else {
+          const w = document.createElement('span'); w.className = 'split-word';
+          const inner = document.createElement('span'); inner.append(node);
+          w.append(inner); span.append(w);
+        }
+      });
+    });
+    $$('[data-split]').forEach((h) => {
+      gsap.from($$('.split-word > span', h), {
+        yPercent: 110, duration: 1, ease: 'expo.out', stagger: 0.035,
+        scrollTrigger: { trigger: h, start: 'top 85%' },
+      });
+    });
 
-  /* ---------- Init ---------- */
-  const saved = storage.get(LANG_KEY);
-  setLanguage(saved && copy[saved] ? saved : 'id');
+    // Hero entrance
+    const heroTl = gsap.timeline({ paused: true });
+    heroTl
+      .from('.hero__title .ln > span', { yPercent: 110, duration: 1.1, ease: 'expo.out', stagger: 0.08 })
+      .from('.hero__eyebrow, .hero__copy', { y: 30, opacity: 0, duration: 0.8, ease: 'expo.out', stagger: 0.1 }, '-=0.8')
+      .from('.board', { x: 80, opacity: 0, rotate: 4, duration: 0.45 * 2, ease: 'expo.out' }, '-=0.9')
+      .from('.sticker', { scale: 0, rotate: -90, duration: 0.8, ease: 'back.out(1.7)' }, '-=0.6')
+      .add(() => { $$('[data-hero-switch]').forEach((s) => s.setAttribute('aria-pressed', 'true')); burst($('html[lang="en"]') ? $$('[data-hero-switch]')[1] : $$('[data-hero-switch]')[0], 10); }, '-=0.3');
+    window.__heroTl = heroTl;
+
+    // Subtle board drift
+    gsap.to('.hero__visual', { yPercent: -8, ease: 'none', scrollTrigger: { trigger: '.hero', start: 'top top', end: 'bottom top', scrub: true } });
+
+    // Stall story: progress scrubbed by scroll
+    renderStall(0);
+    ScrollTrigger.create({
+      trigger: '#stall', start: 'top 90%', end: 'bottom 40%', scrub: 0.4,
+      onUpdate: (self) => renderStall(self.progress),
+    });
+
+    // Steps: cards slide in (the horizontal scroller itself is native, see initStepsScroller)
+    gsap.from('.step', { x: 80, opacity: 0, duration: 1, ease: 'expo.out', stagger: 0.1, scrollTrigger: { trigger: '#stepsTrack', start: 'top 85%' } });
+
+    // Package cards stagger
+    gsap.from('.pkg-sheet__main > *, .pkg-specs > div', { y: 40, opacity: 0, duration: 0.9, ease: 'expo.out', stagger: 0.05, scrollTrigger: { trigger: '#pkgSheet', start: 'top 85%' } });
+    gsap.from('.intent', { scaleX: 0.85, opacity: 0, duration: 0.9, ease: 'expo.out', scrollTrigger: { trigger: '.intent', start: 'top 90%' } });
+
+    // Model rows slide in
+    gsap.from('.mrow', { y: 40, opacity: 0, duration: 0.8, ease: 'expo.out', stagger: 0.06, scrollTrigger: { trigger: '#modelList', start: 'top 85%' } });
+    // Yellow marker under "semua"
+    $$('.display mark').forEach((m) => gsap.fromTo(m, { '--mark': 0 }, { '--mark': 1, duration: 0.8, ease: 'expo.out', scrollTrigger: { trigger: m, start: 'top 80%' } }));
+
+    // Cable draw
+    const cable = $('#cablePath');
+    if (cable) {
+      const len = cable.getTotalLength();
+      gsap.fromTo(cable, { strokeDasharray: len, strokeDashoffset: len }, { strokeDashoffset: 0, ease: 'none', scrollTrigger: { trigger: '.tools', start: 'top 70%', end: 'center center', scrub: true } });
+    }
+    gsap.from('.tool-steps li', { x: -40, opacity: 0, duration: 0.8, ease: 'expo.out', stagger: 0.1, scrollTrigger: { trigger: '.tool-steps', start: 'top 85%' } });
+    gsap.from('.config-card', { y: 60, rotate: 6, opacity: 0, duration: 1, ease: 'expo.out', scrollTrigger: { trigger: '.config-card', start: 'top 85%' } });
+
+    // Benefit stack: earlier cards shrink as the next arrives
+    const cards = $$('.stack-card');
+    cards.forEach((card, i) => {
+      if (i === cards.length - 1) return;
+      gsap.to(card, {
+        scale: 0.92 + i * 0.015, ease: 'none',
+        scrollTrigger: { trigger: cards[i + 1], start: 'top bottom', end: 'top 20%', scrub: true },
+      });
+    });
+
+    // Receipt print-in
+    gsap.from('.receipt__paper', { yPercent: -18, opacity: 0, rotate: -3, duration: 1.1, ease: 'expo.out', scrollTrigger: { trigger: '.receipt', start: 'top 80%' } });
+    gsap.from('.teams__list li', { x: 60, opacity: 0, duration: 0.8, ease: 'expo.out', stagger: 0.08, scrollTrigger: { trigger: '.teams__list', start: 'top 85%' } });
+    gsap.from('.faq-item', { y: 30, opacity: 0, duration: 0.7, ease: 'expo.out', stagger: 0.04, scrollTrigger: { trigger: '#faqList', start: 'top 85%' } });
+
+    // Final CTA
+    gsap.from('.final__title .ln > span', { yPercent: 110, duration: 1.1, ease: 'expo.out', stagger: 0.1, scrollTrigger: { trigger: '.final', start: 'top 60%' } });
+    gsap.from('.mega-switch', { scale: 0.6, opacity: 0, duration: 0.9, ease: 'back.out(1.6)', scrollTrigger: { trigger: '.final', start: 'top 55%' } });
+    ScrollTrigger.create({
+      trigger: '.final', start: 'top 30%', once: true,
+      onEnter: () => { if (mega.getAttribute('aria-pressed') !== 'true') { mega.setAttribute('aria-pressed', 'true'); burst(mega, 18); } },
+    });
+
+    // Footer giant wordmark
+    gsap.from('.footer__giant span', { yPercent: 100, duration: 1.2, ease: 'expo.out', stagger: 0.1, scrollTrigger: { trigger: '.footer__giant', start: 'top 95%' } });
+
+    // Generic fades
+    $$('[data-fade]').forEach((el) => { if (!el.closest('.hero')) gsap.from(el, { y: 30, opacity: 0, duration: 0.8, ease: 'expo.out', scrollTrigger: { trigger: el, start: 'top 90%' } }); });
+
+    // Re-measure after fonts load / language change
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => ScrollTrigger.refresh());
+    document.addEventListener('tn:lang', () => ScrollTrigger.refresh());
+    return true;
+  }
+
+  function start() {
+    const motion = initMotion();
+    runLoader().then(() => {
+      if (motion && window.__heroTl) window.__heroTl.play();
+      else $$('[data-hero-switch]').forEach((s) => s.setAttribute('aria-pressed', 'true'));
+    });
+  }
+  if (document.readyState === 'complete') start();
+  else window.addEventListener('load', start);
 })();
